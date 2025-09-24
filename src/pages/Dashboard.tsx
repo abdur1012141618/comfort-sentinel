@@ -1,10 +1,15 @@
 import { useAuth } from '@/hooks/useAuth';
+import { useAlerts } from '@/hooks/useAlerts';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
+  const { alerts, openAlertsCount, todayAlertsCount, loading, acknowledgeAlert, resolveAlert } = useAlerts();
   const { toast } = useToast();
 
   const handleSignOut = async () => {
@@ -23,46 +28,145 @@ const Dashboard = () => {
     }
   };
 
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString();
+  };
+
+  const getSeverityBadge = (severity: string | null) => {
+    if (!severity) return <Badge variant="secondary">Unknown</Badge>;
+    
+    const variant = severity.toLowerCase() === 'high' ? 'destructive' : 
+                   severity.toLowerCase() === 'medium' ? 'default' : 'secondary';
+    
+    return <Badge variant={variant}>{severity}</Badge>;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Care AI Dashboard</h1>
-          <Button onClick={handleSignOut} variant="outline">
+          <h1 className="text-xl md:text-2xl font-bold">Care AI Dashboard</h1>
+          <Button onClick={handleSignOut} variant="outline" size="sm">
             Sign Out
           </Button>
         </div>
       </header>
       
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid gap-6">
+      <main className="container mx-auto px-4 py-6">
+        <div className="space-y-6">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Open Alerts</CardTitle>
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{openAlertsCount}</div>
+                <p className="text-xs text-muted-foreground">
+                  Alerts requiring attention
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Today's Alerts</CardTitle>
+                <Clock className="h-4 w-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{todayAlertsCount}</div>
+                <p className="text-xs text-muted-foreground">
+                  Alerts created today
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recent Alerts Table */}
           <Card>
             <CardHeader>
-              <CardTitle>Welcome back!</CardTitle>
+              <CardTitle>Recent Alerts</CardTitle>
               <CardDescription>
-                You are successfully authenticated
+                Last 20 alerts ordered by creation time
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <p><strong>Email:</strong> {user?.email}</p>
-                <p><strong>User ID:</strong> {user?.id}</p>
-                <p><strong>Last Sign In:</strong> {user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : 'N/A'}</p>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[180px]">Created At</TableHead>
+                      <TableHead>Severity</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead className="hidden md:table-cell">Description</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {alerts.map((alert) => (
+                      <TableRow key={alert.id}>
+                        <TableCell className="text-sm">
+                          {formatDate(alert.created_at)}
+                        </TableCell>
+                        <TableCell>
+                          {getSeverityBadge(alert.severity)}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {alert.type}
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell max-w-[200px] truncate">
+                          {alert.data?.description || 'No description'}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={alert.is_open ? "destructive" : "secondary"}>
+                            {alert.is_open ? "Open" : "Closed"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end space-x-1">
+                            {alert.is_open && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => acknowledgeAlert(alert.id)}
+                                  className="h-8 px-2 text-xs"
+                                >
+                                  Acknowledge
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  onClick={() => resolveAlert(alert.id)}
+                                  className="h-8 px-2 text-xs"
+                                >
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  Resolve
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                
+                {alerts.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No alerts found
+                  </div>
+                )}
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Dashboard Features</CardTitle>
-              <CardDescription>
-                This is your protected dashboard area
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Add your Care AI features here. This page is only accessible to authenticated users.
-              </p>
             </CardContent>
           </Card>
         </div>
