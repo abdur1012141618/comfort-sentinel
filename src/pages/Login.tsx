@@ -9,7 +9,6 @@ import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
   const navigate = useNavigate();
@@ -20,7 +19,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const { error } = await signIn(email, password);
+      const { error } = await signIn(email);
       
       if (error) {
         toast({
@@ -30,10 +29,9 @@ const Login = () => {
         });
       } else {
         toast({
-          title: "Success",
-          description: "Successfully signed in!",
+          title: "Magic Link Sent",
+          description: "Check your email for the sign-in link!",
         });
-        navigate('/dashboard');
       }
     } catch (error) {
       toast({
@@ -52,7 +50,7 @@ const Login = () => {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Sign In</CardTitle>
           <CardDescription className="text-center">
-            Enter your email and password to access your account
+            Enter your email to receive a magic link
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -69,24 +67,12 @@ const Login = () => {
                 disabled={loading}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
             <Button 
               type="submit" 
               className="w-full" 
               disabled={loading}
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? 'Sending magic link...' : 'Send Magic Link'}
             </Button>
           </form>
         </CardContent>
