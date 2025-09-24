@@ -5,14 +5,10 @@ import { useToast } from '@/hooks/use-toast';
 export interface Alert {
   id: string;
   created_at: string;
-  severity: string | null;
-  type: string;
-  is_open: boolean;
-  data: any;
   resident_id: string | null;
-  source_video_url: string | null;
-  status: string;
-  timestamp: string;
+  type: string;
+  severity: string | null;
+  is_open: boolean;
 }
 
 export const useAlerts = () => {
@@ -27,7 +23,7 @@ export const useAlerts = () => {
       // Fetch recent alerts
       const { data: alertsData, error: alertsError } = await supabase
         .from('alerts')
-        .select('*')
+        .select('id, created_at, resident_id, type, severity, is_open')
         .order('created_at', { ascending: false })
         .limit(20);
 
@@ -117,6 +113,26 @@ export const useAlerts = () => {
 
   useEffect(() => {
     fetchAlerts();
+
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('alerts-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'alerts'
+        },
+        () => {
+          fetchAlerts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return {

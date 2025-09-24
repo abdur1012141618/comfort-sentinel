@@ -72,7 +72,7 @@ const Dashboard = () => {
       <main className="container mx-auto px-4 py-6">
         <div className="space-y-6">
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Open Alerts</CardTitle>
@@ -110,65 +110,67 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[180px]">Created At</TableHead>
-                      <TableHead>Severity</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead className="hidden md:table-cell">Description</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {alerts.map((alert) => (
-                      <TableRow key={alert.id}>
-                        <TableCell className="text-sm">
-                          {formatDate(alert.created_at)}
-                        </TableCell>
-                        <TableCell>
-                          {getSeverityBadge(alert.severity)}
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {alert.type}
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell max-w-[200px] truncate">
-                          {alert.data?.description || 'No description'}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={alert.is_open ? "destructive" : "secondary"}>
-                            {alert.is_open ? "Open" : "Closed"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end space-x-1">
-                            {alert.is_open && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => acknowledgeAlert(alert.id)}
-                                  className="h-8 px-2 text-xs"
-                                >
-                                  Acknowledge
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={() => resolveAlert(alert.id)}
-                                  className="h-8 px-2 text-xs"
-                                >
-                                  <CheckCircle className="h-3 w-3 mr-1" />
-                                  Resolve
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </TableCell>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[180px]">Created At</TableHead>
+                        <TableHead className="hidden sm:table-cell">Resident ID</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead className="hidden md:table-cell">Severity</TableHead>
+                        <TableHead className="hidden lg:table-cell">Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {alerts.map((alert) => (
+                        <TableRow key={alert.id}>
+                          <TableCell className="text-sm">
+                            {formatDate(alert.created_at)}
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell text-xs font-mono">
+                            {alert.resident_id ? alert.resident_id.substring(0, 8) + '...' : 'N/A'}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {alert.type || 'Unknown'}
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            {getSeverityBadge(alert.severity)}
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            <Badge variant={alert.is_open ? "destructive" : "secondary"}>
+                              {alert.is_open ? "Open" : "Closed"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-1">
+                              {alert.is_open ? (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => acknowledgeAlert(alert.id)}
+                                    className="h-8 px-2 text-xs"
+                                  >
+                                    Ack
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => resolveAlert(alert.id)}
+                                    className="h-8 px-2 text-xs"
+                                  >
+                                    <CheckCircle className="h-3 w-3 mr-1" />
+                                    Resolve
+                                  </Button>
+                                </>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">Closed</span>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 
                 {alerts.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
