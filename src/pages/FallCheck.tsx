@@ -4,12 +4,22 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { AlertTriangle, CheckCircle, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { z } from 'zod';
+
+const fallCheckSchema = z.object({
+  age: z.number().min(0, "Age must be positive").max(120, "Age must be realistic"),
+  history: z.string().trim().min(1, "Please describe fall history"),
+  gait: z.enum(['normal', 'shuffling', 'unstable', 'slow'], {
+    errorMap: () => ({ message: "Please select a gait pattern" })
+  })
+});
 
 interface FallCheckResult {
   is_fall: boolean;
@@ -18,34 +28,33 @@ interface FallCheckResult {
 }
 
 const FallCheck = () => {
-  const [age, setAge] = useState<number>(65);
+  const [age, setAge] = useState<string>('');
   const [history, setHistory] = useState<string>('');
   const [gait, setGait] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<FallCheckResult | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!history || !gait) {
-      toast({
-        title: "Error",
-        description: "Please fill in all fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoading(true);
+    setErrors({});
 
     try {
+      const validatedData = fallCheckSchema.parse({
+        age: parseInt(age),
+        history: history.trim(),
+        gait: gait as 'normal' | 'shuffling' | 'unstable' | 'slow'
+      });
+
+      setLoading(true);
+
       const { data, error } = await supabase.rpc('compute_fall_and_alert', {
-        p_age: age,
-        p_history: history,
-        p_gait: gait
+        p_age: validatedData.age,
+        p_history: validatedData.history,
+        p_gait: validatedData.gait
       });
 
       if (error) throw error;
@@ -56,12 +65,11 @@ const FallCheck = () => {
 
         if (result.is_fall) {
           toast({
-            title: "Fall Risk Detected",
-            description: "Alert created - redirecting to dashboard",
+            title: "Alert Created",
+            description: "High fall risk detected - redirecting to dashboard",
             variant: "destructive",
           });
           
-          // Navigate to dashboard after 2 seconds
           setTimeout(() => {
             navigate('/dashboard');
           }, 2000);
@@ -73,21 +81,32 @@ const FallCheck = () => {
         }
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to perform fall check",
-        variant: "destructive",
-      });
+      if (error instanceof z.ZodError) {
+        const newErrors: Record<string, string> = {};
+        error.errors.forEach(err => {
+          if (err.path[0]) {
+            newErrors[err.path[0] as string] = err.message;
+          }
+        });
+        setErrors(newErrors);
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to perform fall check",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const resetForm = () => {
-    setAge(65);
+    setAge('');
     setHistory('');
     setGait('');
     setResult(null);
+    setErrors({});
   };
 
   return (
@@ -123,41 +142,50 @@ const FallCheck = () => {
                     min="0"
                     max="120"
                     value={age}
-                    onChange={(e) => setAge(parseInt(e.target.value) || 0)}
+                    onChange={(e) => setAge(e.target.value)}
                     placeholder="Enter age"
                     required
+                    className={errors.age ? "border-destructive" : ""}
                   />
+                  {errors.age && (
+                    <p className="text-sm text-destructive">{errors.age}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="history">Fall History</Label>
-                  <Select value={history} onValueChange={setHistory} required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select fall history" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No previous falls</SelectItem>
-                      <SelectItem value="fall in last year">Fall in last year</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Textarea
+                    id="history"
+                    value={history}
+                    onChange={(e) => setHistory(e.target.value)}
+                    placeholder="Describe any previous falls, injuries, or relevant medical history..."
+                    rows={4}
+                    className={errors.history ? "border-destructive" : ""}
+                  />
+                  {errors.history && (
+                    <p className="text-sm text-destructive">{errors.history}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="gait">Gait Assessment</Label>
                   <Select value={gait} onValueChange={setGait} required>
-                    <SelectTrigger>
+                    <SelectTrigger className={errors.gait ? "border-destructive" : ""}>
                       <SelectValue placeholder="Select gait pattern" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="steady">Steady</SelectItem>
-                      <SelectItem value="slow">Slow</SelectItem>
-                      <SelectItem value="unsteady">Unsteady</SelectItem>
+                    <SelectContent className="bg-background border z-50">
+                      <SelectItem value="normal">Normal</SelectItem>
                       <SelectItem value="shuffling">Shuffling</SelectItem>
+                      <SelectItem value="unstable">Unstable</SelectItem>
+                      <SelectItem value="slow">Slow</SelectItem>
                     </SelectContent>
                   </Select>
+                  {errors.gait && (
+                    <p className="text-sm text-destructive">{errors.gait}</p>
+                  )}
                 </div>
 
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                   <Button 
                     type="submit" 
                     disabled={loading}
@@ -170,6 +198,7 @@ const FallCheck = () => {
                     variant="outline"
                     onClick={resetForm}
                     disabled={loading}
+                    className="flex-1 sm:flex-initial"
                   >
                     Reset
                   </Button>
