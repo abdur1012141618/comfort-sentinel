@@ -210,6 +210,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ack_alert: {
+        Args: { p_alert_id: string }
+        Returns: undefined
+      }
       auth_role: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -233,6 +237,10 @@ export type Database = {
       is_staff: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      resolve_alert: {
+        Args: { p_alert_id: string }
+        Returns: undefined
       }
     }
     Enums: {

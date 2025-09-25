@@ -7,15 +7,16 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useOptimisticMutation } from '@/hooks/useOptimisticMutation';
-import { updateAlert } from '@/data/db';
+import { ackAlert, resolveAlert } from '@/api/alerts';
 import { useToast } from '@/hooks/use-toast';
 import { AlertTriangle, Clock, Users, TrendingUp, CheckCircle2, XCircle } from 'lucide-react';
+import { useState } from 'react';
 
 export default function Dashboard() {
   const { session } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [loadingId, setLoadingId] = useState<string | null>(null);
   
   const {
     openAlerts,
@@ -26,27 +27,33 @@ export default function Dashboard() {
     residentsRisk
   } = useDashboardData();
 
-  const { mutate: ackAlert, isPending: ackPending } = useOptimisticMutation({
-    mutationFn: async (alertId: string) => {
-      return updateAlert(alertId, { is_open: false });
-    },
-    onSuccess: () => {
+  const handleAck = async (id: string) => {
+    try {
+      setLoadingId(id);
+      await ackAlert(id);
       toast({ title: "Alert acknowledged", description: "The alert has been marked as acknowledged." });
       recentAlerts.retry();
       openAlerts.retry();
+    } catch (e: any) {
+      toast({ title: "Error", description: e?.message ?? "Failed to acknowledge", variant: "destructive" });
+    } finally {
+      setLoadingId(null);
     }
-  });
+  };
 
-  const { mutate: resolveAlert, isPending: resolvePending } = useOptimisticMutation({
-    mutationFn: async (alertId: string) => {
-      return updateAlert(alertId, { status: 'resolved', is_open: false });
-    },
-    onSuccess: () => {
+  const handleResolve = async (id: string) => {
+    try {
+      setLoadingId(id);
+      await resolveAlert(id);
       toast({ title: "Alert resolved", description: "The alert has been marked as resolved." });
       recentAlerts.retry();
       openAlerts.retry();
+    } catch (e: any) {
+      toast({ title: "Error", description: e?.message ?? "Failed to resolve", variant: "destructive" });
+    } finally {
+      setLoadingId(null);
     }
-  });
+  };
 
   useEffect(() => {
     if (!session) {
@@ -165,16 +172,16 @@ export default function Dashboard() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => ackAlert(alert.id)}
-                            disabled={ackPending || resolvePending}
+                            onClick={() => handleAck(alert.id)}
+                            disabled={loadingId === alert.id}
                           >
                             <CheckCircle2 className="w-3 h-3 mr-1" />
                             Ack
                           </Button>
                           <Button
                             size="sm"
-                            onClick={() => resolveAlert(alert.id)}
-                            disabled={ackPending || resolvePending}
+                            onClick={() => handleResolve(alert.id)}
+                            disabled={loadingId === alert.id}
                           >
                             <XCircle className="w-3 h-3 mr-1" />
                             Resolve
