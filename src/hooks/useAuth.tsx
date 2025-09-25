@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { useProfile } from './useProfile';
 
 interface AuthContextType {
   user: User | null;
@@ -16,6 +17,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const { upsertProfile } = useProfile(user);
 
   useEffect(() => {
     // Set up auth state listener
@@ -24,6 +26,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Upsert profile on successful login
+        if (event === 'SIGNED_IN' && session?.user?.id) {
+          // Use setTimeout to avoid potential recursion in auth state change
+          setTimeout(() => {
+            upsertProfile(session.user.id);
+          }, 0);
+        }
       }
     );
 
@@ -32,10 +42,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      // Upsert profile if user exists
+      if (session?.user?.id) {
+        setTimeout(() => {
+          upsertProfile(session.user.id);
+        }, 0);
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [upsertProfile]);
 
   const signIn = async (email: string) => {
     const host = window.location.host;

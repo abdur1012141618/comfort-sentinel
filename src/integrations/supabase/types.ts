@@ -20,6 +20,7 @@ export type Database = {
           data: Json
           id: string
           is_open: boolean
+          org_id: string | null
           resident_id: string | null
           severity: string | null
           source_video_url: string | null
@@ -32,6 +33,7 @@ export type Database = {
           data?: Json
           id?: string
           is_open?: boolean
+          org_id?: string | null
           resident_id?: string | null
           severity?: string | null
           source_video_url?: string | null
@@ -44,6 +46,7 @@ export type Database = {
           data?: Json
           id?: string
           is_open?: boolean
+          org_id?: string | null
           resident_id?: string | null
           severity?: string | null
           source_video_url?: string | null
@@ -69,6 +72,7 @@ export type Database = {
           history: string
           id: string
           is_fall: boolean
+          org_id: string | null
           processed_at: string
           raw: Json | null
           resident_id: string | null
@@ -80,6 +84,7 @@ export type Database = {
           history: string
           id?: string
           is_fall: boolean
+          org_id?: string | null
           processed_at?: string
           raw?: Json | null
           resident_id?: string | null
@@ -91,9 +96,34 @@ export type Database = {
           history?: string
           id?: string
           is_fall?: boolean
+          org_id?: string | null
           processed_at?: string
           raw?: Json | null
           resident_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          id: string
+          org_id: string
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          org_id?: string
+          role?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          org_id?: string
+          role?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -106,6 +136,7 @@ export type Database = {
           gender: string | null
           id: string
           notes: string | null
+          org_id: string | null
           room: string | null
         }
         Insert: {
@@ -116,6 +147,7 @@ export type Database = {
           gender?: string | null
           id?: string
           notes?: string | null
+          org_id?: string | null
           room?: string | null
         }
         Update: {
@@ -126,6 +158,7 @@ export type Database = {
           gender?: string | null
           id?: string
           notes?: string | null
+          org_id?: string | null
           room?: string | null
         }
         Relationships: []
@@ -154,11 +187,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      auth_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       compute_fall_and_alert: {
         Args: { p_age: number; p_gait: string; p_history: string }
         Returns: {
@@ -166,6 +221,14 @@ export type Database = {
           is_fall: boolean
           processed_at: string
         }[]
+      }
+      current_org_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      is_staff: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
     }
     Enums: {
