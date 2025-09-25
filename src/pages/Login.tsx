@@ -1,46 +1,34 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useState } from "react";
+import { supabase } from "@/lib/supabase";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {
   const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const [sending, setSending] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
+    setSending(true);
+    setMsg(null);
     try {
-      const { error } = await signIn(email);
-      
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Magic Link Sent",
-          description: "Check your email for the sign-in link!",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
+      // If we're in preview (*.lovableproject.com) redirect to published domain.
+      const host = window.location.host;
+      const isPreview = host.endsWith(".lovableproject.com");
+      const publishedBase = "https://comfort-sentinel.lovable.app";
+      const base = isPreview ? publishedBase : window.location.origin;
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: `${base}/dashboard` },
       });
+
+      setMsg(error ? error.message : "Check your email for the magic link.");
     } finally {
-      setLoading(false);
+      setSending(false);
     }
   };
 
@@ -54,7 +42,7 @@ const Login = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -64,17 +52,18 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={loading}
+                disabled={sending}
               />
             </div>
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={loading}
+              disabled={sending}
             >
-              {loading ? 'Sending magic link...' : 'Send Magic Link'}
+              {sending ? 'Sending…' : 'Send Magic Link'}
             </Button>
           </form>
+          {msg && <p className="mt-3 text-sm text-center">{msg}</p>}
         </CardContent>
       </Card>
     </div>
