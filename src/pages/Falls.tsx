@@ -19,6 +19,7 @@ import { Plus, Edit, Trash2, CalendarIcon, TestTube, ArrowUpDown, Download } fro
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Navigation } from "@/components/Navigation";
+import { updateFallCheck, insertFallCheck, deleteFallCheck, getErrorMessage } from "@/data/db";
 
 interface Resident {
   id: string;
@@ -181,8 +182,10 @@ export default function Falls() {
   };
 
   const onSubmit = async (data: FallCheckFormData) => {
-    setSubmitting(true);
+    if (submitting) return;
+    
     try {
+      setSubmitting(true);
       const is_fall = calculateIsFall(data.age, data.history || '', data.gait);
       const payload = { 
         resident_id: data.resident_id,
@@ -194,23 +197,20 @@ export default function Falls() {
       };
 
       if (editingFallCheck) {
-        const { error } = await supabase
-          .from('fall_checks')
-          .update(payload)
-          .eq('id', editingFallCheck.id);
-
-        if (error) throw error;
+        const updated = await updateFallCheck(editingFallCheck.id, payload);
+        
+        // Optimistic update
+        setFallChecks(prev => prev.map(f => f.id === updated.id ? updated : f));
         
         toast({
           title: "Success",
           description: "Fall check updated successfully.",
         });
       } else {
-        const { error } = await supabase
-          .from('fall_checks')
-          .insert([payload]);
-
-        if (error) throw error;
+        const created = await insertFallCheck(payload);
+        
+        // Optimistic update
+        setFallChecks(prev => [created, ...prev]);
         
         toast({
           title: "Success", 
@@ -221,12 +221,11 @@ export default function Falls() {
       setIsModalOpen(false);
       setEditingFallCheck(null);
       form.reset();
-      await loadData();
     } catch (error) {
       console.error('Error saving fall check:', error);
       toast({
         title: "Error",
-        description: "Failed to save fall check. Please try again.",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     } finally {
@@ -250,24 +249,20 @@ export default function Falls() {
     if (!confirm("Are you sure you want to delete this fall check?")) return;
 
     try {
-      const { error } = await supabase
-        .from('fall_checks')
-        .delete()
-        .eq('id', fallCheck.id);
-
-      if (error) throw error;
+      await deleteFallCheck(fallCheck.id);
+      
+      // Optimistic update
+      setFallChecks(prev => prev.filter(f => f.id !== fallCheck.id));
 
       toast({
         title: "Success",
         description: "Fall check deleted successfully.",
       });
-      
-      await loadData();
     } catch (error) {
       console.error('Error deleting fall check:', error);
       toast({
         title: "Error",
-        description: "Failed to delete fall check. Please try again.",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     }

@@ -20,12 +20,13 @@ import { Plus, Edit, Trash2, Search, CalendarIcon, ArrowUpDown, Download } from 
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Navigation } from "@/components/Navigation";
+import { updateResident, insertResident, deleteResident, getErrorMessage } from "@/data/db";
 
 const residentSchema = z.object({
-  full_name: z.string().trim().min(1, { message: "Full name is required" }).max(100),
+  full_name: z.string().trim().min(2, { message: "Full name must be at least 2 characters" }).max(100),
   dob: z.date().optional(),
-  room: z.string().trim().max(20),
-  notes: z.string().trim().max(500)
+  room: z.string().trim().max(10, { message: "Room number must be 10 characters or less" }).optional(),
+  notes: z.string().trim().max(500).optional()
 });
 
 type ResidentForm = z.infer<typeof residentSchema>;
@@ -67,7 +68,7 @@ export default function Residents() {
     }
   });
 
-  // Check auth on mount
+  // Check auth on mount and setup realtime
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -78,6 +79,26 @@ export default function Residents() {
       fetchResidents();
     };
     checkAuth();
+    
+    // Setup realtime subscription
+    const channel = supabase
+      .channel('residents_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'residents'
+        },
+        () => {
+          fetchResidents();
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [navigate]);
 
   // Update URL params when filters change
@@ -129,28 +150,19 @@ export default function Residents() {
     try {
       setIsSubmitting(true);
       
-      const insertData = {
-        full_name: data.full_name,
+      const payload = {
+        full_name: data.full_name.trim(),
         dob: data.dob ? data.dob.toISOString().split('T')[0] : null,
-        room: data.room || null,
-        notes: data.notes || null
+        room: data.room?.trim() || null,
+        notes: data.notes?.trim() || null
         // org_id will be set by DB trigger
       };
 
-      const { error } = await supabase
-        .from('residents')
-        .insert([insertData]);
-
-      if (error) {
-        console.error('Add resident error:', error);
-        toast({
-          title: "Error",
-          description: "Failed to add resident", 
-          variant: "destructive"
-        });
-        return;
-      }
-
+      const created = await insertResident(payload);
+      
+      // Optimistic update
+      setResidents(prev => [created, ...prev]);
+      
       toast({
         title: "Success",
         description: "Resident added successfully"
@@ -158,13 +170,12 @@ export default function Residents() {
       
       setIsAddModalOpen(false);
       form.reset();
-      fetchResidents();
     } catch (error) {
-      console.error('Add resident exception:', error);
+      console.error('Add resident error:', error);
       toast({
         title: "Error",
-        description: "Failed to add resident",
-        variant: "destructive"  
+        description: getErrorMessage(error),
+        variant: "destructive"
       });
     } finally {
       setIsSubmitting(false);
@@ -177,28 +188,18 @@ export default function Residents() {
     try {
       setIsSubmitting(true);
       
-      const updateData = {
-        full_name: data.full_name,
+      const patch = {
+        full_name: data.full_name.trim(),
         dob: data.dob ? data.dob.toISOString().split('T')[0] : null,
-        room: data.room || null,
-        notes: data.notes || null
+        room: data.room?.trim() || null,
+        notes: data.notes?.trim() || null
       };
 
-      const { error } = await supabase
-        .from('residents')
-        .update(updateData)
-        .eq('id', editingResident.id);
-
-      if (error) {
-        console.error('Update resident error:', error);
-        toast({
-          title: "Error",
-          description: "Failed to update resident",
-          variant: "destructive"
-        });
-        return;
-      }
-
+      const updated = await updateResident(editingResident.id, patch);
+      
+      // Optimistic update
+      setResidents(prev => prev.map(r => r.id === updated.id ? updated : r));
+      
       toast({
         title: "Success", 
         description: "Resident updated successfully"
@@ -207,12 +208,11 @@ export default function Residents() {
       setIsEditModalOpen(false);
       setEditingResident(null);
       form.reset();
-      fetchResidents();
     } catch (error) {
-      console.error('Update resident exception:', error);
+      console.error('Update resident error:', error);
       toast({
         title: "Error",
-        description: "Failed to update resident",
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     } finally {
@@ -222,32 +222,20 @@ export default function Residents() {
 
   const handleDeleteResident = async (residentId: string) => {
     try {
-      const { error } = await supabase
-        .from('residents')
-        .delete()
-        .eq('id', residentId);
-
-      if (error) {
-        console.error('Delete resident error:', error);
-        toast({
-          title: "Error",
-          description: "Failed to delete resident",
-          variant: "destructive"
-        });
-        return;
-      }
-
+      await deleteResident(residentId);
+      
+      // Optimistic update
+      setResidents(prev => prev.filter(r => r.id !== residentId));
+      
       toast({
         title: "Success",
         description: "Resident deleted successfully"
       });
-      
-      fetchResidents();
     } catch (error) {
-      console.error('Delete resident exception:', error);
+      console.error('Delete resident error:', error);
       toast({
         title: "Error",
-        description: "Failed to delete resident", 
+        description: getErrorMessage(error),
         variant: "destructive"
       });
     }

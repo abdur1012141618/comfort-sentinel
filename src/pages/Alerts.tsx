@@ -12,6 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { ArrowLeft, CalendarIcon, Download, ArrowUpDown } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { updateAlert, getErrorMessage } from "@/data/db";
 
 interface Alert {
   id: string;
@@ -140,24 +141,23 @@ export default function Alerts() {
 
   const handleResolveAlert = async (alertId: string) => {
     try {
-      const { error } = await supabase
-        .from('alerts')
-        .update({ status: 'closed', is_open: false })
-        .eq('id', alertId);
-
-      if (error) throw error;
+      const updated = await updateAlert(alertId, { 
+        status: 'closed', 
+        is_open: false 
+      });
+      
+      // Optimistic update
+      setAlerts(prev => prev.map(a => a.id === updated.id ? updated : a));
 
       toast({
         title: "Success",
         description: "Alert resolved successfully.",
       });
-      
-      await loadData();
     } catch (error) {
       console.error('Error resolving alert:', error);
       toast({
         title: "Error",
-        description: "Failed to resolve alert. Please try again.",
+        description: getErrorMessage(error),
         variant: "destructive",
       });
     }
