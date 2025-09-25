@@ -45,6 +45,29 @@ export default function AuthCallback() {
           });
           
           if (!error) {
+            // Upsert minimal profile after successful session setup
+            try {
+              await supabase
+                .from('profiles')
+                .upsert({ id: (await supabase.auth.getUser()).data.user?.id })
+                .select('id')
+                .single();
+              
+              if (import.meta.env.DEV) {
+                console.log('Profile upserted successfully in auth callback');
+              }
+            } catch (profileError) {
+              // Non-blocking profile error - show small toast but continue
+              if (import.meta.env.DEV) {
+                console.warn('Profile upsert error (non-blocking):', profileError);
+              }
+              toast({
+                title: "Profile sync",
+                description: "Profile setup incomplete, but login successful",
+                variant: "default",
+              });
+            }
+            
             navigate('/dashboard', { replace: true });
             return;
           }

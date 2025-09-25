@@ -22,34 +22,28 @@ export const useProfile = (user: User | null) => {
       
       const { data, error } = await supabase
         .from('profiles')
-        .upsert(
-          { 
-            id: userId,
-            role: 'staff'
-            // org_id will be auto-generated if not exists due to DEFAULT constraint
-          },
-          { 
-            onConflict: 'id',
-            ignoreDuplicates: false 
-          }
-        )
-        .select()
+        .upsert({ id: userId }, { onConflict: 'id', ignoreDuplicates: true })
+        .select('id')
         .single();
 
       if (error) {
-        console.error('Profile upsert error:', error);
-        toast({
-          title: "Profile Error",
-          description: "Failed to create user profile",
-          variant: "destructive"
-        });
+        if (import.meta.env.DEV) {
+          console.error('Profile upsert error:', error);
+        }
+        // Non-blocking - don't show error toast, just return null
         return null;
       }
 
-      setProfile(data);
+      if (import.meta.env.DEV) {
+        console.log('Profile upserted successfully for user:', userId);
+      }
+      
+      setProfile(data as Profile);
       return data;
     } catch (error) {
-      console.error('Profile upsert exception:', error);
+      if (import.meta.env.DEV) {
+        console.error('Profile upsert exception:', error);
+      }
       return null;
     } finally {
       setLoading(false);

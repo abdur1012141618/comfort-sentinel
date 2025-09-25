@@ -12,6 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { ArrowLeft, CalendarIcon, Download, ArrowUpDown } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Navigation } from "@/components/Navigation";
 import { updateAlert, getErrorMessage } from "@/data/db";
 
 interface Alert {
@@ -90,7 +91,12 @@ export default function Alerts() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [alertsResponse, residentsResponse] = await Promise.all([
+      // Add timeout protection
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timed out')), 8000)
+      );
+      
+      const dataPromise = Promise.all([
         supabase
           .from('alerts')
           .select('*, residents(full_name)')
@@ -101,16 +107,23 @@ export default function Alerts() {
           .order('full_name')
       ]);
 
+      const [alertsResponse, residentsResponse] = await Promise.race([dataPromise, timeoutPromise]) as any;
+
       if (alertsResponse.error) throw alertsResponse.error;
       if (residentsResponse.error) throw residentsResponse.error;
 
+      if (import.meta.env.DEV) {
+        console.log('Alerts data loaded:', alertsResponse.data?.length, 'alerts,', residentsResponse.data?.length, 'residents');
+      }
+
       setAlerts(alertsResponse.data || []);
       setResidents(residentsResponse.data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading data:', error);
+      const isTimeout = error.message === 'Request timed out';
       toast({
-        title: "Error",
-        description: "Failed to load data. Please try again.",
+        title: isTimeout ? "Timeout" : "Error",
+        description: isTimeout ? "Request timed out. Please check your connection." : "Failed to load data. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -257,7 +270,22 @@ export default function Alerts() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto p-6">
+          <Card>
+            <CardContent className="flex items-center justify-center py-16">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-2 text-sm text-muted-foreground">Loading alerts...</p>
+                <p className="mt-1 text-xs text-muted-foreground">This may take a moment</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   const paginatedAlerts = getPaginatedAlerts();

@@ -116,10 +116,18 @@ export default function Residents() {
   const fetchResidents = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Add timeout protection
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timed out')), 8000)
+      );
+      
+      const dataPromise = supabase
         .from('residents')
         .select('*')
         .order('created_at', { ascending: false });
+
+      const { data, error } = await Promise.race([dataPromise, timeoutPromise]) as any;
 
       if (error) {
         console.error('Fetch residents error:', error);
@@ -131,12 +139,17 @@ export default function Residents() {
         return;
       }
 
+      if (import.meta.env.DEV) {
+        console.log('Residents data loaded:', data?.length, 'records');
+      }
+
       setResidents(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Fetch residents exception:', error);
+      const isTimeout = error.message === 'Request timed out';
       toast({
-        title: "Error", 
-        description: "Failed to load residents",
+        title: isTimeout ? "Timeout" : "Error",
+        description: isTimeout ? "Request timed out. Please check your connection." : "Failed to load residents",
         variant: "destructive"
       });
     } finally {
@@ -471,8 +484,19 @@ export default function Residents() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto p-6">
+          <Card>
+            <CardContent className="flex items-center justify-center py-16">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-2 text-sm text-muted-foreground">Loading residents...</p>
+                <p className="mt-1 text-xs text-muted-foreground">This may take a moment</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

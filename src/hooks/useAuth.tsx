@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${base}/dashboard`
+        emailRedirectTo: `${base}/auth/callback`
       }
     });
     return { error };
