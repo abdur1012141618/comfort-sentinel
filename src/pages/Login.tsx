@@ -7,28 +7,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export default function Login() {
   const [email, setEmail] = useState('');
-  const [sending, setSending] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSending(true);
-    setMsg(null);
-    try {
-      // If we're in preview (*.lovableproject.com) redirect to published domain.
-      const host = window.location.host;
-      const isPreview = host.endsWith(".lovableproject.com");
-      const publishedBase = "https://comfort-sentinel.lovable.app";
-      const base = isPreview ? publishedBase : window.location.origin;
-
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: `${base}/dashboard` },
-      });
-
-      setMsg(error ? error.message : "Check your email for the magic link.");
-    } finally {
-      setSending(false);
+    setLoading(true);
+    const { data, error } = await supabase.auth.signInWithOtp({ email });
+    setLoading(false);
+    if (error) {
+      setError(error.message);
+    } else {
+      setMessage('Check your email for the magic link or OTP.');
     }
   };
 
@@ -52,18 +43,19 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={sending}
+                disabled={loading}
               />
             </div>
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={sending}
+              disabled={loading}
             >
-              {sending ? 'Sending…' : 'Send Magic Link'}
+              {loading ? 'Sending…' : 'Send Magic Link'}
             </Button>
           </form>
-          {msg && <p className="mt-3 text-sm text-center">{msg}</p>}
+          {error && <p className="mt-3 text-sm text-center text-red-600">{error}</p>}
+          {message && <p className="mt-3 text-sm text-center text-green-600">{message}</p>}
         </CardContent>
       </Card>
     </div>

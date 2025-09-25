@@ -6,12 +6,26 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { AlertTriangle, CheckCircle, Clock, Activity } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
+import { useEffect } from 'react';
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const { alerts, openAlertsCount, todayAlertsCount, loading, acknowledgeAlert, resolveAlert } = useAlerts();
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  // Session guard
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/login');
+      }
+    };
+    checkSession();
+  }, [navigate]);
 
   const handleSignOut = async () => {
     try {
