@@ -8,13 +8,32 @@ import { useToast } from '@/hooks/use-toast';
 import { AlertTriangle, CheckCircle, Clock, Activity } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Session } from '@supabase/supabase-js';
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const { alerts, openAlertsCount, todayAlertsCount, loading, acknowledgeAlert, resolveAlert } = useAlerts();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [debugSession, setDebugSession] = useState<Session | null>(null);
+
+  // Debug session tracking
+  useEffect(() => {
+    // Get current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setDebugSession(session);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setDebugSession(session);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Session guard
   useEffect(() => {
@@ -68,7 +87,15 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-xl md:text-2xl font-bold">Care AI Dashboard</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl md:text-2xl font-bold">Care AI Dashboard</h1>
+            <div className="text-sm text-muted-foreground font-mono">
+              {debugSession?.user?.email ? 
+                `Signed in as: ${debugSession.user.email}` : 
+                'Signed out'
+              }
+            </div>
+          </div>
           <div className="flex items-center gap-2">
             <Link to="/fall-check">
               <Button variant="outline" size="sm">
