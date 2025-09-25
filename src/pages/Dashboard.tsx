@@ -97,6 +97,12 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Link to="/residents">
+              <Button variant="outline" size="sm">
+                <Activity className="h-4 w-4 mr-2" />
+                Residents
+              </Button>
+            </Link>
             <Link to="/fall-check">
               <Button variant="outline" size="sm">
                 <Activity className="h-4 w-4 mr-2" />

@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import FallCheck from "./pages/FallCheck";
+import Residents from "./pages/Residents";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +41,11 @@ const App = () => {
               <Route path="/fall-check" element={
                 <ProtectedRoute>
                   <FallCheck />
+                </ProtectedRoute>
+              } />
+              <Route path="/residents" element={
+                <ProtectedRoute>
+                  <Residents />
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
