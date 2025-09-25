@@ -38,12 +38,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signIn = async (email: string) => {
-    const redirectUrl = `${window.location.origin}/dashboard`;
+    const host = window.location.host;
+    const isPreview = host.endsWith(".lovableproject.com");
+    const publishedBase = "https://comfort-sentinel.lovable.app";
+    const base = isPreview ? publishedBase : window.location.origin;
     
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: redirectUrl
+        emailRedirectTo: `${base}/dashboard`
       }
     });
     return { error };
