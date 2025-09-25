@@ -11,7 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import FallCheck from "./pages/FallCheck";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
 

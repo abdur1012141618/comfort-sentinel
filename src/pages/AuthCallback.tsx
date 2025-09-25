@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -10,6 +10,15 @@ export default function AuthCallback() {
     const handleAuthCallback = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        
+        // Temporary debug log for testing (no tokens logged)
+        console.log('Auth callback - Session status:', {
+          hasSession: !!session,
+          hasUser: !!session?.user,
+          userEmail: session?.user?.email || 'No email',
+          sessionValid: !!session?.access_token
+        });
+        
         if (session) {
           navigate('/dashboard');
         } else {
