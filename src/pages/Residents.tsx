@@ -1,22 +1,25 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { format } from 'date-fns';
-import { CalendarIcon, Edit, Trash2, Plus, Search } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "@/hooks/use-toast";
+import { Plus, Edit, Trash2, Search, CalendarIcon, ArrowUpDown } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Navigation } from "@/components/Navigation";
 
 const residentSchema = z.object({
   full_name: z.string().trim().min(1, { message: "Full name is required" }).max(100),
@@ -26,6 +29,8 @@ const residentSchema = z.object({
 });
 
 type ResidentForm = z.infer<typeof residentSchema>;
+type SortField = 'created_at' | 'full_name';
+type SortOrder = 'asc' | 'desc';
 
 interface Resident {
   id: string;
@@ -38,14 +43,20 @@ interface Resident {
 
 export default function Residents() {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [residents, setResidents] = useState<Resident[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingResident, setEditingResident] = useState<Resident | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Pagination and sorting from URL params
+  const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
+  const [pageSize, setPageSize] = useState(parseInt(searchParams.get('pageSize') || '10'));
+  const [sortField, setSortField] = useState<SortField>((searchParams.get('sortField') as SortField) || 'created_at');
+  const [sortOrder, setSortOrder] = useState<SortOrder>((searchParams.get('sortOrder') as SortOrder) || 'desc');
 
   const form = useForm<ResidentForm>({
     resolver: zodResolver(residentSchema),
@@ -68,6 +79,18 @@ export default function Residents() {
     };
     checkAuth();
   }, [navigate]);
+
+  // Update URL params when filters change
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (searchTerm) params.set('search', searchTerm);
+    if (page !== 1) params.set('page', page.toString());
+    if (pageSize !== 10) params.set('pageSize', pageSize.toString());
+    if (sortField !== 'created_at') params.set('sortField', sortField);
+    if (sortOrder !== 'desc') params.set('sortOrder', sortOrder);
+    
+    setSearchParams(params);
+  }, [searchTerm, page, pageSize, sortField, sortOrder, setSearchParams]);
 
   const fetchResidents = async () => {
     try {
@@ -241,13 +264,65 @@ export default function Residents() {
     setIsEditModalOpen(true);
   };
 
-  const filteredResidents = residents.filter(resident => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      resident.full_name.toLowerCase().includes(searchLower) ||
-      (resident.room || '').toLowerCase().includes(searchLower)
-    );
-  });
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+    setPage(1); // Reset to first page when sorting
+  };
+
+  const getFilteredAndSortedResidents = () => {
+    const q = (searchTerm ?? '').trim().toLowerCase();
+    
+    let filtered = residents.filter((resident) => {
+      const fullName = (resident.full_name ?? '').toLowerCase();
+      const room = (resident.room ?? '').toLowerCase();
+      const notes = (resident.notes ?? '').toLowerCase();
+      
+      return (
+        q.length === 0 ||
+        fullName.includes(q) ||
+        room.includes(q) ||
+        notes.includes(q)
+      );
+    });
+
+    // Sort
+    filtered.sort((a, b) => {
+      let aValue: any, bValue: any;
+      
+      if (sortField === 'created_at') {
+        aValue = new Date(a.created_at);
+        bValue = new Date(b.created_at);
+      } else if (sortField === 'full_name') {
+        aValue = a.full_name || '';
+        bValue = b.full_name || '';
+      }
+      
+      if (sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+
+    return filtered;
+  };
+
+  const getPaginatedResidents = () => {
+    const filtered = getFilteredAndSortedResidents();
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filtered.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = () => {
+    const filtered = getFilteredAndSortedResidents();
+    return Math.ceil(filtered.length / pageSize);
+  };
 
   const ResidentFormModal = ({ 
     isOpen, 
@@ -382,126 +457,192 @@ export default function Residents() {
     );
   }
 
+  const paginatedResidents = getPaginatedResidents();
+  const totalPages = getTotalPages();
+  const filteredCount = getFilteredAndSortedResidents().length;
+
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       
       <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Residents</h1>
-        <Button onClick={() => setIsAddModalOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Resident
-        </Button>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <Search className="h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search residents..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
-        />
-      </div>
-
-      {filteredResidents.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground mb-4">
-            {searchTerm ? 'No residents found matching your search.' : 'No residents yet.'}
-          </p>
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Residents</h1>
           <Button onClick={() => setIsAddModalOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Resident
           </Button>
         </div>
-      ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Full Name</TableHead>
-                <TableHead>Date of Birth</TableHead>
-                <TableHead>Room</TableHead>
-                <TableHead>Notes</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredResidents.map((resident) => (
-                <TableRow key={resident.id}>
-                  <TableCell className="font-medium">{resident.full_name}</TableCell>
-                  <TableCell>
-                    {resident.dob ? format(new Date(resident.dob), 'MMM dd, yyyy') : '-'}
-                  </TableCell>
-                  <TableCell>{resident.room || '-'}</TableCell>
-                  <TableCell className="max-w-xs truncate">{resident.notes || '-'}</TableCell>
-                  <TableCell>{format(new Date(resident.created_at), 'MMM dd, yyyy')}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditModal(resident)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Resident</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete {resident.full_name}? 
-                              This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction 
-                              onClick={() => handleDeleteResident(resident.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+
+        <div className="flex items-center space-x-2">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search residents..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-sm"
+          />
         </div>
-      )}
 
-      <ResidentFormModal
-        isOpen={isAddModalOpen}
-        onClose={() => {
-          setIsAddModalOpen(false);
-          form.reset();
-        }}
-        onSubmit={handleAddResident}
-        title="Add New Resident"
-      />
+        {/* Pagination Controls */}
+        <Card>
+          <CardContent className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-muted-foreground">
+                Showing {Math.min(filteredCount, pageSize)} of {filteredCount} residents
+              </span>
+              <Select value={pageSize.toString()} onValueChange={(value) => { setPageSize(parseInt(value)); setPage(1); }}>
+                <SelectTrigger className="w-20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                </SelectContent>
+              </Select>
+              <span className="text-sm text-muted-foreground">per page</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                disabled={page <= 1}
+                onClick={() => setPage(page - 1)}
+              >
+                Previous
+              </Button>
+              <span className="text-sm">
+                Page {page} of {Math.max(1, totalPages)}
+              </span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                disabled={page >= totalPages}
+                onClick={() => setPage(page + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
-      <ResidentFormModal
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setEditingResident(null);
-          form.reset();
-        }}
-        onSubmit={handleEditResident}
-        title="Edit Resident"
-      />
-      </div>
+        {paginatedResidents.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground mb-4">
+              {searchTerm ? 'No residents found matching your search.' : 'No residents yet.'}
+            </p>
+            <Button onClick={() => setIsAddModalOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Resident
+            </Button>
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleSort('full_name')}
+                        className="h-8 p-0 font-medium"
+                      >
+                        Full Name <ArrowUpDown className="ml-2 h-3 w-3" />
+                      </Button>
+                    </TableHead>
+                    <TableHead>Date of Birth</TableHead>
+                    <TableHead>Room</TableHead>
+                    <TableHead>Notes</TableHead>
+                    <TableHead>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleSort('created_at')}
+                        className="h-8 p-0 font-medium"
+                      >
+                        Created <ArrowUpDown className="ml-2 h-3 w-3" />
+                      </Button>
+                    </TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedResidents.map((resident) => (
+                    <TableRow key={resident.id}>
+                      <TableCell className="font-medium">{resident.full_name}</TableCell>
+                      <TableCell>
+                        {resident.dob ? format(new Date(resident.dob), 'MMM dd, yyyy') : '-'}
+                      </TableCell>
+                      <TableCell>{resident.room || '-'}</TableCell>
+                      <TableCell className="max-w-xs truncate">{resident.notes || '-'}</TableCell>
+                      <TableCell>{format(new Date(resident.created_at), 'MMM dd, yyyy')}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openEditModal(resident)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Resident</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete {resident.full_name}? 
+                                  This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => handleDeleteResident(resident.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )}
+
+        <ResidentFormModal
+          isOpen={isAddModalOpen}
+          onClose={() => {
+            setIsAddModalOpen(false);
+            form.reset();
+          }}
+          onSubmit={handleAddResident}
+          title="Add New Resident"
+        />
+
+        <ResidentFormModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingResident(null);
+            form.reset();
+          }}
+          onSubmit={handleEditResident}
+          title="Edit Resident"
+        />
       </div>
     </div>
   );
