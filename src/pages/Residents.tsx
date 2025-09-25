@@ -383,7 +383,10 @@ export default function Residents() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      
+      <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Residents</h1>
         <Button onClick={() => setIsAddModalOpen(true)}>
@@ -498,6 +501,8 @@ export default function Residents() {
         onSubmit={handleEditResident}
         title="Edit Resident"
       />
+      </div>
+      </div>
     </div>
   );
 }

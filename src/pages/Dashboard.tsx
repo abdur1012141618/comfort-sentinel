@@ -1,39 +1,20 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useAlerts } from '@/hooks/useAlerts';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { AlertTriangle, CheckCircle, Clock, Activity } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { AlertTriangle, CheckCircle, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect, useState } from 'react';
-import { Session } from '@supabase/supabase-js';
+import { useEffect } from 'react';
+import { Navigation } from '@/components/Navigation';
 
 const Dashboard = () => {
-  const { user, signOut } = useAuth();
   const { alerts, openAlertsCount, todayAlertsCount, loading, acknowledgeAlert, resolveAlert } = useAlerts();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [debugSession, setDebugSession] = useState<Session | null>(null);
-
-  // Debug session tracking
-  useEffect(() => {
-    // Get current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setDebugSession(session);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setDebugSession(session);
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   // Session guard
   useEffect(() => {
@@ -45,22 +26,6 @@ const Dashboard = () => {
     };
     checkSession();
   }, [navigate]);
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast({
-        title: "Success",
-        description: "Successfully signed out!",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to sign out",
-        variant: "destructive",
-      });
-    }
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
@@ -85,42 +50,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl md:text-2xl font-bold">Care AI Dashboard</h1>
-            <div className="text-sm text-muted-foreground font-mono">
-              {debugSession?.user?.email ? 
-                `Signed in as: ${debugSession.user.email}` : 
-                'Signed out'
-              }
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link to="/residents">
-              <Button variant="outline" size="sm">
-                <Activity className="h-4 w-4 mr-2" />
-                Residents
-              </Button>
-            </Link>
-            <Link to="/falls">
-              <Button variant="outline" size="sm">
-                <Activity className="h-4 w-4 mr-2" />
-                Falls
-              </Button>
-            </Link>
-            <Link to="/fall-check">
-              <Button variant="outline" size="sm">
-                <Activity className="h-4 w-4 mr-2" />
-                Fall Check
-              </Button>
-            </Link>
-            <Button onClick={handleSignOut} variant="outline" size="sm">
-              Sign Out
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Navigation />
       
       <main className="container mx-auto px-4 py-6">
         <div className="space-y-6">

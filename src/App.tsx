@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import FallCheck from "./pages/FallCheck";
 import Falls from "./pages/Falls";
+import Alerts from "./pages/Alerts";
 import Residents from "./pages/Residents";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
@@ -44,18 +45,21 @@ const App = () => {
                   <FallCheck />
                 </ProtectedRoute>
               } />
-              <Route path="/residents" element={
-                <ProtectedRoute>
-                  <Residents />
-                </ProtectedRoute>
-              } />
               <Route path="/falls" element={
                 <ProtectedRoute>
                   <Falls />
                 </ProtectedRoute>
               } />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
+              <Route path="/residents" element={
+                <ProtectedRoute>
+                  <Residents />
+                </ProtectedRoute>
+              } />
+              <Route path="/alerts" element={
+                <ProtectedRoute>
+                  <Alerts />
+                </ProtectedRoute>
+              } />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
