@@ -15,7 +15,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, CalendarIcon, TestTube, ArrowUpDown } from "lucide-react";
+import { Plus, Edit, Trash2, CalendarIcon, TestTube, ArrowUpDown, Download } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Navigation } from "@/components/Navigation";
@@ -406,6 +406,43 @@ export default function Falls() {
     return Math.ceil(filtered.length / pageSize);
   };
 
+  const exportToCSV = () => {
+    const filteredAndSortedFallChecks = getFilteredAndSortedFallChecks();
+    
+    const headers = ['Date', 'Resident', 'Age', 'Confidence', 'Gait', 'History', 'Is Fall'];
+    const csvData = [
+      headers.join(','),
+      ...filteredAndSortedFallChecks.map(fallCheck => {
+        const resident = residents.find(r => r.id === fallCheck.resident_id);
+        return [
+          format(new Date(fallCheck.processed_at), 'yyyy-MM-dd HH:mm:ss'),
+          resident?.full_name || 'Unknown',
+          fallCheck.age.toString(),
+          (fallCheck.confidence * 100).toFixed(1) + '%',
+          fallCheck.gait,
+          fallCheck.history || '',
+          fallCheck.is_fall ? 'Yes' : 'No'
+        ].map(field => `"${field}"`).join(',');
+      })
+    ].join('\n');
+
+    const blob = new Blob([csvData], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', 'fall-checks.csv');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: "Success",
+      description: "Fall checks exported to CSV successfully.",
+    });
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
@@ -422,6 +459,10 @@ export default function Falls() {
         <div className="flex items-center gap-4 mb-6">
           <h1 className="text-2xl font-bold">Fall Checks</h1>
           <div className="ml-auto flex gap-2">
+            <Button variant="outline" size="sm" onClick={exportToCSV}>
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
             {isDevelopment && (
               <Button 
                 variant="outline" 
@@ -758,6 +799,7 @@ export default function Falls() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleEdit(fallCheck)}
+                              disabled={submitting}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -765,6 +807,7 @@ export default function Falls() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDelete(fallCheck)}
+                              disabled={submitting}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

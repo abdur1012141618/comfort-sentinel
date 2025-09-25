@@ -16,7 +16,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Search, CalendarIcon, ArrowUpDown } from "lucide-react";
+import { Plus, Edit, Trash2, Search, CalendarIcon, ArrowUpDown, Download } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Navigation } from "@/components/Navigation";
@@ -324,6 +324,38 @@ export default function Residents() {
     return Math.ceil(filtered.length / pageSize);
   };
 
+  const exportToCSV = () => {
+    const filteredAndSortedResidents = getFilteredAndSortedResidents();
+    
+    const headers = ['Full Name', 'Date of Birth', 'Room', 'Notes', 'Created At'];
+    const csvData = [
+      headers.join(','),
+      ...filteredAndSortedResidents.map(resident => [
+        resident.full_name || '',
+        resident.dob ? format(new Date(resident.dob), 'yyyy-MM-dd') : '',
+        resident.room || '',
+        resident.notes || '',
+        format(new Date(resident.created_at), 'yyyy-MM-dd HH:mm:ss')
+      ].map(field => `"${field}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvData], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('hidden', '');
+    a.setAttribute('href', url);
+    a.setAttribute('download', 'residents.csv');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    toast({
+      title: "Success",
+      description: "Residents exported to CSV successfully.",
+    });
+  };
+
   const ResidentFormModal = ({ 
     isOpen, 
     onClose, 
@@ -466,12 +498,18 @@ export default function Residents() {
       <Navigation />
       
       <div className="container mx-auto p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Residents</h1>
-          <Button onClick={() => setIsAddModalOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Resident
-          </Button>
+        <div className="flex items-center gap-4 mb-6">
+          <h1 className="text-2xl font-bold">Residents</h1>
+          <div className="ml-auto flex gap-2">
+            <Button variant="outline" size="sm" onClick={exportToCSV}>
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
+            <Button onClick={() => setIsAddModalOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Resident
+            </Button>
+          </div>
         </div>
 
         <div className="flex items-center space-x-2">
@@ -585,12 +623,13 @@ export default function Residents() {
                             variant="outline"
                             size="sm"
                             onClick={() => openEditModal(resident)}
+                            disabled={isSubmitting}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
+                              <Button variant="outline" size="sm" disabled={isSubmitting}>
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </AlertDialogTrigger>

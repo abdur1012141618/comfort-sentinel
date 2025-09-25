@@ -467,6 +467,7 @@ export default function Alerts() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleResolveAlert(alert.id)}
+                          disabled={loading}
                         >
                           Resolve
                         </Button>
