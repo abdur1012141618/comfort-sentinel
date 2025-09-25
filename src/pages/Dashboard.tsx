@@ -103,6 +103,12 @@ const Dashboard = () => {
                 Residents
               </Button>
             </Link>
+            <Link to="/falls">
+              <Button variant="outline" size="sm">
+                <Activity className="h-4 w-4 mr-2" />
+                Falls
+              </Button>
+            </Link>
             <Link to="/fall-check">
               <Button variant="outline" size="sm">
                 <Activity className="h-4 w-4 mr-2" />

@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import FallCheck from "./pages/FallCheck";
+import Falls from "./pages/Falls";
 import Residents from "./pages/Residents";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
@@ -46,6 +47,11 @@ const App = () => {
               <Route path="/residents" element={
                 <ProtectedRoute>
                   <Residents />
+                </ProtectedRoute>
+              } />
+              <Route path="/falls" element={
+                <ProtectedRoute>
+                  <Falls />
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
