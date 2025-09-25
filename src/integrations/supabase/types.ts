@@ -226,6 +226,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      ensure_profile: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       is_staff: {
         Args: Record<PropertyKey, never>
         Returns: boolean

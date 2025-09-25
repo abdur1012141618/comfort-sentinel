@@ -1,101 +1,58 @@
+import { useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useAlerts } from '@/hooks/useAlerts';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { AlertTriangle, CheckCircle, Clock, TestTube } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { useEffect, useState } from 'react';
 import { Navigation } from '@/components/Navigation';
+import { DashboardCard } from '@/components/DashboardCard';
+import { useDashboardData } from '@/hooks/useDashboardData';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useOptimisticMutation } from '@/hooks/useOptimisticMutation';
+import { updateAlert } from '@/data/db';
+import { useToast } from '@/hooks/use-toast';
+import { AlertTriangle, Clock, Users, TrendingUp, CheckCircle2, XCircle } from 'lucide-react';
 
-const Dashboard = () => {
-  const { alerts, openAlertsCount, todayAlertsCount, loading, acknowledgeAlert, resolveAlert } = useAlerts();
-  const { toast } = useToast();
+export default function Dashboard() {
+  const { session } = useAuth();
   const navigate = useNavigate();
-  const [isSeeding, setIsSeeding] = useState(false);
+  const { toast } = useToast();
   
-  const isDevelopment = import.meta.env.DEV;
+  const {
+    openAlerts,
+    todayAlerts,
+    medianAckTime,
+    recentAlerts,
+    roomsAttention,
+    residentsRisk
+  } = useDashboardData();
 
-  // Session guard
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/login');
-      }
-    };
-    checkSession();
-  }, [navigate]);
-
-  const addTestData = async () => {
-    if (isSeeding) return;
-    
-    try {
-      setIsSeeding(true);
-      
-      // Check if residents already exist
-      let { data: existingResidents, error: residentsError } = await supabase
-        .from('residents')
-        .select('*')
-        .limit(1);
-        
-      if (residentsError) throw residentsError;
-      
-      let aliceId;
-      
-      if (!existingResidents || existingResidents.length === 0) {
-        // Create test residents
-        const { data: newResidents, error: createError } = await supabase
-          .from('residents')
-          .insert([
-            { full_name: 'Alice Smith', room: '101' },
-            { full_name: 'Bob Khan', room: '102' }
-          ])
-          .select();
-          
-        if (createError) throw createError;
-        aliceId = newResidents[0].id;
-      } else {
-        // Use existing first resident as Alice
-        aliceId = existingResidents[0].id;
-      }
-      
-      // Insert a high-risk fall check for Alice
-      const { error: fallCheckError } = await supabase
-        .from('fall_checks')
-        .insert([{
-          resident_id: aliceId,
-          age: 82,
-          gait: 'unsteady',
-          history: 'Previous fall detected, uses walker, seed data',
-          confidence: 0.95,
-          is_fall: true
-        }]);
-        
-      if (fallCheckError) throw fallCheckError;
-      
-      toast({
-        title: "Success",
-        description: "Seeded sample data",
-      });
-      
-      // Navigate to alerts to verify
-      navigate('/alerts');
-      
-    } catch (error) {
-      console.error('Error adding test data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to seed test data. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSeeding(false);
+  const { mutate: ackAlert, isPending: ackPending } = useOptimisticMutation({
+    mutationFn: async (alertId: string) => {
+      return updateAlert(alertId, { is_open: false });
+    },
+    onSuccess: () => {
+      toast({ title: "Alert acknowledged", description: "The alert has been marked as acknowledged." });
+      recentAlerts.retry();
+      openAlerts.retry();
     }
-  };
+  });
+
+  const { mutate: resolveAlert, isPending: resolvePending } = useOptimisticMutation({
+    mutationFn: async (alertId: string) => {
+      return updateAlert(alertId, { status: 'resolved', is_open: false });
+    },
+    onSuccess: () => {
+      toast({ title: "Alert resolved", description: "The alert has been marked as resolved." });
+      recentAlerts.retry();
+      openAlerts.retry();
+    }
+  });
+
+  useEffect(() => {
+    if (!session) {
+      navigate('/login', { replace: true });
+    }
+  }, [session, navigate]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
@@ -104,164 +61,186 @@ const Dashboard = () => {
   const getSeverityBadge = (severity: string | null) => {
     if (!severity) return <Badge variant="secondary">Unknown</Badge>;
     
-    const variant = severity.toLowerCase() === 'high' ? 'destructive' : 
-                   severity.toLowerCase() === 'medium' ? 'default' : 'secondary';
-    
+    const variant = severity === 'high' ? 'destructive' : 
+                   severity === 'medium' ? 'default' : 'secondary';
     return <Badge variant={variant}>{severity}</Badge>;
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="container mx-auto px-4 py-6">
-        <div className="space-y-6">
-          {/* Dev Test Data Button */}
-          {isDevelopment && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TestTube className="h-5 w-5" />
-                  Development Tools
-                </CardTitle>
-                <CardDescription>
-                  Tools available only in development mode
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  onClick={addTestData}
-                  disabled={isSeeding}
-                  variant="outline"
-                >
-                  <TestTube className="h-4 w-4 mr-2" />
-                  {isSeeding ? 'Adding Test Data...' : 'Add Test Data'}
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Open Alerts</CardTitle>
-                <AlertTriangle className="h-4 w-4 text-destructive" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{openAlertsCount}</div>
-                <p className="text-xs text-muted-foreground">
-                  Alerts requiring attention
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Today's Alerts</CardTitle>
-                <Clock className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{todayAlertsCount}</div>
-                <p className="text-xs text-muted-foreground">
-                  Alerts created today
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Recent Alerts Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Alerts</CardTitle>
-              <CardDescription>
-                Last 20 alerts ordered by creation time
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[180px]">Created At</TableHead>
-                        <TableHead className="hidden sm:table-cell">Resident ID</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead className="hidden md:table-cell">Severity</TableHead>
-                        <TableHead className="hidden lg:table-cell">Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {alerts.map((alert) => (
-                        <TableRow key={alert.id}>
-                          <TableCell className="text-sm">
-                            {formatDate(alert.created_at)}
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell text-xs font-mono">
-                            {alert.resident_id ? alert.resident_id.substring(0, 8) + '...' : 'N/A'}
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            {alert.type || 'Unknown'}
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            {getSeverityBadge(alert.severity)}
-                          </TableCell>
-                          <TableCell className="hidden lg:table-cell">
-                            <Badge variant={alert.is_open ? "destructive" : "secondary"}>
-                              {alert.is_open ? "Open" : "Closed"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-1">
-                              {alert.is_open ? (
-                                <>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => acknowledgeAlert(alert.id)}
-                                    className="h-8 px-2 text-xs"
-                                  >
-                                    Ack
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    onClick={() => resolveAlert(alert.id)}
-                                    className="h-8 px-2 text-xs"
-                                  >
-                                    <CheckCircle className="h-3 w-3 mr-1" />
-                                    Resolve
-                                  </Button>
-                                </>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">Closed</span>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                
-                {alerts.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No alerts found
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+      <main className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Overview of alerts, residents, and system status
+          </p>
         </div>
+
+        {/* Stats Grid */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+          <DashboardCard
+            title="Open Alerts"
+            loading={openAlerts.loading}
+            error={openAlerts.error}
+            onRetry={openAlerts.retry}
+          >
+            <div className="flex items-center space-x-2">
+              <AlertTriangle className="w-8 h-8 text-destructive" />
+              <div>
+                <div className="text-2xl font-bold">{openAlerts.count}</div>
+                <p className="text-sm text-muted-foreground">
+                  <Link to="/alerts?status=open" className="hover:underline">
+                    View all open alerts →
+                  </Link>
+                </p>
+              </div>
+            </div>
+          </DashboardCard>
+
+          <DashboardCard
+            title="Today's Alerts"
+            loading={todayAlerts.loading}
+            error={todayAlerts.error}
+            onRetry={todayAlerts.retry}
+          >
+            <div className="flex items-center space-x-2">
+              <Clock className="w-8 h-8 text-primary" />
+              <div>
+                <div className="text-2xl font-bold">{todayAlerts.count}</div>
+                <p className="text-sm text-muted-foreground">Since midnight</p>
+              </div>
+            </div>
+          </DashboardCard>
+
+          <DashboardCard
+            title="Median Ack Time"
+            description="Last 7 days"
+            loading={medianAckTime.loading}
+            error={medianAckTime.error}
+            onRetry={medianAckTime.retry}
+          >
+            <div className="flex items-center space-x-2">
+              <TrendingUp className="w-8 h-8 text-accent" />
+              <div>
+                <div className="text-2xl font-bold">
+                  {medianAckTime.minutes ? `${medianAckTime.minutes}min` : 'N/A'}
+                </div>
+                <p className="text-sm text-muted-foreground">Average response time</p>
+              </div>
+            </div>
+          </DashboardCard>
+        </div>
+
+        {/* Tables Grid */}
+        <div className="grid gap-6 lg:grid-cols-2 mb-8">
+          <DashboardCard
+            title="Recent Alerts"
+            description="Last 10 alerts with actions"
+            loading={recentAlerts.loading}
+            error={recentAlerts.error}
+            onRetry={recentAlerts.retry}
+          >
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Time</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Severity</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recentAlerts.alerts.map((alert) => (
+                  <TableRow key={alert.id}>
+                    <TableCell className="text-sm">
+                      {formatDate(alert.created_at)}
+                    </TableCell>
+                    <TableCell>{alert.type}</TableCell>
+                    <TableCell>{getSeverityBadge(alert.severity)}</TableCell>
+                    <TableCell>
+                      {alert.status === 'open' && (
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => ackAlert(alert.id)}
+                            disabled={ackPending || resolvePending}
+                          >
+                            <CheckCircle2 className="w-3 h-3 mr-1" />
+                            Ack
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => resolveAlert(alert.id)}
+                            disabled={ackPending || resolvePending}
+                          >
+                            <XCircle className="w-3 h-3 mr-1" />
+                            Resolve
+                          </Button>
+                        </div>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </DashboardCard>
+
+          <DashboardCard
+            title="Rooms Requiring Attention"
+            description="Top 5 by recent events"
+            loading={roomsAttention.loading}
+            error={roomsAttention.error}
+            onRetry={roomsAttention.retry}
+          >
+            <div className="space-y-3">
+              {roomsAttention.rooms.map((room, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div>
+                    <p className="font-medium">{room.room}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {room.event_count} events
+                    </p>
+                  </div>
+                  <Badge variant="outline">
+                    {formatDate(room.last_event).split(',')[0]}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </DashboardCard>
+        </div>
+
+        {/* Bottom Section */}
+        <DashboardCard
+          title="Residents at Risk"
+          description="Last 24h fall/high-risk residents"
+          loading={residentsRisk.loading}
+          error={residentsRisk.error}
+          onRetry={residentsRisk.retry}
+        >
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {residentsRisk.residents.map((resident) => (
+              <div key={resident.id} className="p-4 border rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium">{resident.full_name}</h4>
+                  <Badge variant={resident.risk_score >= 70 ? 'destructive' : 'default'}>
+                    {resident.risk_score}% risk
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Room: {resident.room || 'N/A'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Last event: {formatDate(resident.last_event)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </DashboardCard>
       </main>
     </div>
   );
-};
-
-export default Dashboard;
+}

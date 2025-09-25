@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { ensureProfile, waitReject, parseErr } from '@/lib/auth-utils';
+import { waitReject, parseErr } from '@/lib/auth-utils';
+import { useAuthStore } from '@/hooks/useAuthStore';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const { setAuth, clearAuth } = useAuthStore();
 
   useEffect(() => {
     let didComplete = false;
@@ -69,8 +71,21 @@ export default function AuthCallback() {
             console.log('AuthCallback: Session established, ensuring profile...');
           }
           
-          // Ensure profile exists
-          await ensureProfile();
+          // Call ensure_profile RPC to get/create profile with org_id
+          const { data: profile, error: profileError } = await supabase.rpc('ensure_profile');
+          
+          if (profileError) {
+            throw profileError;
+          }
+
+          const profileData = profile as any;
+          if (!profileData?.org_id) {
+            throw new Error('Profile missing organization ID');
+          }
+
+          // Update auth store with session data
+          const sessionData = session as any;
+          setAuth(sessionData.user.id, sessionData.user.email || '', profileData.org_id);
           
           if (import.meta.env.DEV) {
             console.log('AuthCallback: Redirecting to dashboard');
@@ -85,6 +100,7 @@ export default function AuthCallback() {
         if (!mounted || didComplete) return;
         
         console.error('AuthCallback: Authentication failed:', error);
+        clearAuth();
         toast({
           title: "Authentication Error",
           description: parseErr(error),

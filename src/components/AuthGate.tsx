@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { ensureProfile, waitReject } from '@/lib/auth-utils';
+import { waitReject, parseErr } from '@/lib/auth-utils';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthStore } from '@/hooks/useAuthStore';
 
 interface AuthGateProps {
   children: React.ReactNode;
@@ -12,6 +13,7 @@ export const AuthGate = ({ children }: AuthGateProps) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { setAuth, clearAuth } = useAuthStore();
 
   useEffect(() => {
     let mounted = true;
@@ -35,21 +37,37 @@ export const AuthGate = ({ children }: AuthGateProps) => {
             console.log('AuthGate: Session found, ensuring profile...');
           }
           
-          await ensureProfile();
+          // Call ensure_profile RPC and gate until org_id is available
+          const { data: profile, error: profileError } = await supabase.rpc('ensure_profile');
+          
+          if (profileError) {
+            throw profileError;
+          }
+
+          const profileData = profile as any;
+          if (!profileData?.org_id) {
+            throw new Error('Profile missing organization ID');
+          }
+
+          // Update auth store with session data
+          setAuth(session.user.id, session.user.email || '', profileData.org_id);
+          
           navigate('/dashboard', { replace: true });
         } else {
           if (import.meta.env.DEV) {
             console.log('AuthGate: No session found, redirecting to login');
           }
+          clearAuth();
           navigate('/login', { replace: true });
         }
       } catch (error) {
         if (!mounted) return;
         
         console.error('AuthGate: Authentication check failed:', error);
+        clearAuth();
         toast({
           title: "Authentication Error",
-          description: "Login took too long. Please try again.",
+          description: parseErr(error),
           variant: "destructive",
         });
         navigate('/login', { replace: true });
