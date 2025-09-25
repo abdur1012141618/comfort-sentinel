@@ -1,11 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 
+// Reliable CRUD operations that always return data and handle errors properly
+
 export async function updateResident(id: string, patch: any) {
   const { data, error } = await supabase
     .from('residents')
     .update(patch)
     .eq('id', id)
-    .select()
+    .select('*')
     .single();
   if (error) throw error;
   return data;
@@ -15,7 +17,7 @@ export async function insertResident(payload: any) {
   const { data, error } = await supabase
     .from('residents')
     .insert(payload)
-    .select()
+    .select('*')
     .single();
   if (error) throw error;
   return data;
@@ -31,7 +33,7 @@ export async function updateFallCheck(id: string, patch: any) {
     .from('fall_checks')
     .update(patch)
     .eq('id', id)
-    .select()
+    .select('*')
     .single();
   if (error) throw error;
   return data;
@@ -41,7 +43,7 @@ export async function insertFallCheck(payload: any) {
   const { data, error } = await supabase
     .from('fall_checks')
     .insert(payload)
-    .select()
+    .select('*')
     .single();
   if (error) throw error;
   return data;
@@ -57,7 +59,7 @@ export async function updateAlert(id: string, patch: any) {
     .from('alerts')
     .update(patch)
     .eq('id', id)
-    .select()
+    .select('*')
     .single();
   if (error) throw error;
   return data;

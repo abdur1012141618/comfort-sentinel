@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { ensureProfile, waitReject, parseErr } from '@/lib/auth-utils';
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -10,10 +11,15 @@ export default function AuthCallback() {
 
   useEffect(() => {
     let didComplete = false;
+    let mounted = true;
     
     const handleAuthCallback = async () => {
       try {
-        // 1) Check for auth errors from provider
+        if (import.meta.env.DEV) {
+          console.log('AuthCallback: Starting auth callback handling...');
+        }
+
+        // Check for auth errors from provider
         const hash = window.location.hash || '';
         const errorDescription = new URLSearchParams(hash.slice(1)).get('error_description');
         if (errorDescription) {
@@ -26,96 +32,95 @@ export default function AuthCallback() {
           return;
         }
 
-        // 2) Check for existing session
-        let { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          navigate('/dashboard', { replace: true });
-          return;
-        }
-
-        // 3) Try to set session from hash (implicit flow)
-        const params = new URLSearchParams(hash.slice(1));
-        const accessToken = params.get('access_token');
-        const refreshToken = params.get('refresh_token');
-        
-        if (accessToken && refreshToken) {
-          const { error } = await supabase.auth.setSession({ 
-            access_token: accessToken, 
-            refresh_token: refreshToken 
-          });
+        // Race condition: handle auth within 8 seconds
+        const authPromise = (async () => {
+          // Check for existing session
+          let { data: { session } } = await supabase.auth.getSession();
           
-          if (!error) {
-            // Upsert minimal profile after successful session setup
-            try {
-              await supabase
-                .from('profiles')
-                .upsert({ id: (await supabase.auth.getUser()).data.user?.id })
-                .select('id')
-                .single();
-              
-              if (import.meta.env.DEV) {
-                console.log('Profile upserted successfully in auth callback');
-              }
-            } catch (profileError) {
-              // Non-blocking profile error - show small toast but continue
-              if (import.meta.env.DEV) {
-                console.warn('Profile upsert error (non-blocking):', profileError);
-              }
-              toast({
-                title: "Profile sync",
-                description: "Profile setup incomplete, but login successful",
-                variant: "default",
-              });
-            }
+          if (!session) {
+            // Try to set session from hash (implicit flow)
+            const params = new URLSearchParams(hash.slice(1));
+            const accessToken = params.get('access_token');
+            const refreshToken = params.get('refresh_token');
             
-            navigate('/dashboard', { replace: true });
-            return;
+            if (accessToken && refreshToken) {
+              const { error } = await supabase.auth.setSession({ 
+                access_token: accessToken, 
+                refresh_token: refreshToken 
+              });
+              
+              if (!error) {
+                const { data: { session: newSession } } = await supabase.auth.getSession();
+                session = newSession;
+              }
+            }
           }
-        }
 
-        // 4) Fallback - redirect to login
-        toast({
-          title: "Login Timeout",
-          description: "Login timed out. Please try again.",
-          variant: "destructive",
-        });
-        navigate('/login', { replace: true });
+          return session;
+        })();
+
+        const timeoutPromise = waitReject(8000, 'Authentication timeout');
+        const session = await Promise.race([authPromise, timeoutPromise]);
+
+        if (!mounted || didComplete) return;
+
+        if (session) {
+          if (import.meta.env.DEV) {
+            console.log('AuthCallback: Session established, ensuring profile...');
+          }
+          
+          // Ensure profile exists
+          await ensureProfile();
+          
+          if (import.meta.env.DEV) {
+            console.log('AuthCallback: Redirecting to dashboard');
+          }
+          
+          navigate('/dashboard', { replace: true });
+        } else {
+          throw new Error('No session found after authentication');
+        }
         
       } catch (error) {
-        console.error('Auth callback error:', error);
+        if (!mounted || didComplete) return;
+        
+        console.error('AuthCallback: Authentication failed:', error);
         toast({
           title: "Authentication Error",
-          description: "An error occurred during authentication. Please try again.",
+          description: parseErr(error),
           variant: "destructive",
         });
         navigate('/login', { replace: true });
       } finally {
-        setLoading(false);
+        if (mounted && !didComplete) {
+          setLoading(false);
+        }
       }
     };
 
     // Start the auth callback process immediately
     const timer = setTimeout(() => {
-      if (!didComplete) {
+      if (!didComplete && mounted) {
         handleAuthCallback();
       }
     }, 0);
 
-    // Safety timeout after 8 seconds
+    // Safety timeout
     const safetyTimer = setTimeout(() => {
-      if (!didComplete) {
+      if (!didComplete && mounted) {
         didComplete = true;
         toast({
           title: "Login Timeout",
-          description: "Login timed out. Please try again.",
+          description: "Authentication took too long. Please try again.",
           variant: "destructive",
         });
         navigate('/login', { replace: true });
         setLoading(false);
       }
-    }, 8000);
+    }, 8500);
 
     return () => {
+      mounted = false;
       didComplete = true;
       clearTimeout(timer);
       clearTimeout(safetyTimer);
