@@ -6,7 +6,7 @@ import { toast } from "@/hooks/use-toast";
 import { Navigation } from "@/components/Navigation";
 import { LoadingState } from "@/components/LoadingState";
 import { useDataLoader } from "@/hooks/useDataLoader";
-import { updateAlert } from "@/data/db";
+import { resolveAlert } from "@/api/alerts";
 import { parseErr } from "@/lib/auth-utils";
 
 interface Alert {
@@ -34,10 +34,7 @@ export default function Alerts() {
   const handleResolve = async (alertId: string) => {
     setResolving(alertId);
     try {
-      await updateAlert(alertId, { 
-        status: 'closed', 
-        is_open: false 
-      });
+      await resolveAlert(alertId);
       
       toast({
         title: "Success",
@@ -48,7 +45,7 @@ export default function Alerts() {
     } catch (error) {
       toast({
         title: "Error",
-        description: parseErr(error),
+        description: parseErr(error) || "Failed to resolve alert",
         variant: "destructive",
       });
     } finally {
