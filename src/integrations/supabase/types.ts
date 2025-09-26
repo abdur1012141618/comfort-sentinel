@@ -65,6 +65,13 @@ export type Database = {
             referencedRelation: "residents"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "alerts_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "v_residents"
+            referencedColumns: ["id"]
+          },
         ]
       }
       fall_checks: {
@@ -210,7 +217,141 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_alerts: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          id: string | null
+          is_open: boolean | null
+          org_id: string | null
+          resident_id: string | null
+          resolved_at: string | null
+          severity: string | null
+          source_video_url: string | null
+          status: Database["public"]["Enums"]["alert_status"] | null
+          timestamp: string | null
+          type: Database["public"]["Enums"]["alert_type"] | null
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string | null
+          is_open?: boolean | null
+          org_id?: string | null
+          resident_id?: string | null
+          resolved_at?: string | null
+          severity?: string | null
+          source_video_url?: string | null
+          status?: Database["public"]["Enums"]["alert_status"] | null
+          timestamp?: string | null
+          type?: Database["public"]["Enums"]["alert_type"] | null
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string | null
+          is_open?: boolean | null
+          org_id?: string | null
+          resident_id?: string | null
+          resolved_at?: string | null
+          severity?: string | null
+          source_video_url?: string | null
+          status?: Database["public"]["Enums"]["alert_status"] | null
+          timestamp?: string | null
+          type?: Database["public"]["Enums"]["alert_type"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alerts_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "v_residents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_fall_checks: {
+        Row: {
+          age: number | null
+          confidence: number | null
+          gait: string | null
+          history: string | null
+          id: string | null
+          is_fall: boolean | null
+          org_id: string | null
+          processed_at: string | null
+          raw: Json | null
+          resident_id: string | null
+        }
+        Insert: {
+          age?: number | null
+          confidence?: number | null
+          gait?: string | null
+          history?: string | null
+          id?: string | null
+          is_fall?: boolean | null
+          org_id?: string | null
+          processed_at?: string | null
+          raw?: Json | null
+          resident_id?: string | null
+        }
+        Update: {
+          age?: number | null
+          confidence?: number | null
+          gait?: string | null
+          history?: string | null
+          id?: string | null
+          is_fall?: boolean | null
+          org_id?: string | null
+          processed_at?: string | null
+          raw?: Json | null
+          resident_id?: string | null
+        }
+        Relationships: []
+      }
+      v_residents: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          dob: string | null
+          full_name: string | null
+          gender: string | null
+          id: string | null
+          notes: string | null
+          org_id: string | null
+          room: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          dob?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string | null
+          notes?: string | null
+          org_id?: string | null
+          room?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          dob?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string | null
+          notes?: string | null
+          org_id?: string | null
+          room?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       ack_alert: {
