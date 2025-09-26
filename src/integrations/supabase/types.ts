@@ -22,6 +22,7 @@ export type Database = {
           is_open: boolean
           org_id: string | null
           resident_id: string | null
+          resolved_at: string | null
           severity: string | null
           source_video_url: string | null
           status: Database["public"]["Enums"]["alert_status"]
@@ -35,6 +36,7 @@ export type Database = {
           is_open?: boolean
           org_id?: string | null
           resident_id?: string | null
+          resolved_at?: string | null
           severity?: string | null
           source_video_url?: string | null
           status?: Database["public"]["Enums"]["alert_status"]
@@ -48,6 +50,7 @@ export type Database = {
           is_open?: boolean
           org_id?: string | null
           resident_id?: string | null
+          resolved_at?: string | null
           severity?: string | null
           source_video_url?: string | null
           status?: Database["public"]["Enums"]["alert_status"]
