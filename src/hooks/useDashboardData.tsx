@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { queryView } from '@/lib/supaFetch';
 import { useToast } from '@/hooks/use-toast';
-import { waitReject, parseErr } from '@/lib/auth-utils';
+import { parseErr } from '@/lib/auth-utils';
 
 interface DashboardCard {
   loading: boolean;
@@ -99,19 +99,21 @@ export function useDashboardData() {
     try {
       setOpenAlerts(prev => ({ ...prev, loading: true, error: null }));
       
-      const queryPromise = supabase
-        .from('alerts')
-        .select('id', { count: 'exact' })
-        .eq('is_open', true);
-      
-      const result = await Promise.race([queryPromise, waitReject(8000, 'Request timeout')]) as any;
+      const data = await queryView('v_alerts', 'id', {
+        filters: [{ column: 'is_open', operator: 'eq', value: true }],
+        limit: 1000
+      });
 
-      if (result.error) throw result.error;
-
-      setOpenAlerts(prev => ({ ...prev, count: result.count || 0, loading: false }));
+      setOpenAlerts(prev => ({ ...prev, count: data.length, loading: false }));
     } catch (error) {
       const message = parseErr(error);
+      console.error('Dashboard: Failed to fetch open alerts:', error);
       setOpenAlerts(prev => ({ ...prev, error: message, loading: false }));
+      toast({
+        title: "Data Loading Error",
+        description: message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -122,19 +124,21 @@ export function useDashboardData() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      const queryPromise = supabase
-        .from('alerts')
-        .select('id', { count: 'exact' })
-        .gte('created_at', today.toISOString());
-      
-      const result = await Promise.race([queryPromise, waitReject(8000, 'Request timeout')]) as any;
+      const data = await queryView('v_alerts', 'id', {
+        filters: [{ column: 'created_at', operator: 'gte', value: today.toISOString() }],
+        limit: 1000
+      });
 
-      if (result.error) throw result.error;
-
-      setTodayAlerts(prev => ({ ...prev, count: result.count || 0, loading: false }));
+      setTodayAlerts(prev => ({ ...prev, count: data.length, loading: false }));
     } catch (error) {
       const message = parseErr(error);
+      console.error('Dashboard: Failed to fetch today alerts:', error);
       setTodayAlerts(prev => ({ ...prev, error: message, loading: false }));
+      toast({
+        title: "Data Loading Error",
+        description: message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -154,20 +158,21 @@ export function useDashboardData() {
     try {
       setRecentAlerts(prev => ({ ...prev, loading: true, error: null }));
       
-      const queryPromise = supabase
-        .from('alerts')
-        .select('id, created_at, type, severity, status, resident_id')
-        .order('created_at', { ascending: false })
-        .limit(10);
-      
-      const result = await Promise.race([queryPromise, waitReject(8000, 'Request timeout')]) as any;
+      const data = await queryView('v_alerts', 'id, created_at, type, severity, status, resident_id', {
+        orderBy: { column: 'created_at', ascending: false },
+        limit: 10
+      });
 
-      if (result.error) throw result.error;
-
-      setRecentAlerts(prev => ({ ...prev, alerts: result.data || [], loading: false }));
+      setRecentAlerts(prev => ({ ...prev, alerts: data, loading: false }));
     } catch (error) {
       const message = parseErr(error);
+      console.error('Dashboard: Failed to fetch recent alerts:', error);
       setRecentAlerts(prev => ({ ...prev, error: message, loading: false }));
+      toast({
+        title: "Data Loading Error",
+        description: message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -175,17 +180,12 @@ export function useDashboardData() {
     try {
       setRoomsAttention(prev => ({ ...prev, loading: true, error: null }));
       
-      const queryPromise = supabase
-        .from('residents')
-        .select('room')
-        .not('room', 'is', null)
-        .limit(5);
-      
-      const result = await Promise.race([queryPromise, waitReject(8000, 'Request timeout')]) as any;
+      const data = await queryView('v_residents', 'room', {
+        filters: [{ column: 'room', operator: 'neq', value: null }],
+        limit: 5
+      });
 
-      if (result.error) throw result.error;
-
-      const rooms = (result.data || []).map((resident: any, index: number) => ({
+      const rooms = (data || []).map((resident: any, index: number) => ({
         room: resident.room || `Room ${index + 1}`,
         event_count: Math.floor(Math.random() * 10) + 1,
         last_event: new Date(Date.now() - Math.random() * 86400000).toISOString()
@@ -194,7 +194,13 @@ export function useDashboardData() {
       setRoomsAttention(prev => ({ ...prev, rooms, loading: false }));
     } catch (error) {
       const message = parseErr(error);
+      console.error('Dashboard: Failed to fetch rooms attention:', error);
       setRoomsAttention(prev => ({ ...prev, error: message, loading: false }));
+      toast({
+        title: "Data Loading Error",
+        description: message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -202,16 +208,11 @@ export function useDashboardData() {
     try {
       setResidentsRisk(prev => ({ ...prev, loading: true, error: null }));
       
-      const queryPromise = supabase
-        .from('residents')
-        .select('id, full_name, room')
-        .limit(5);
-      
-      const result = await Promise.race([queryPromise, waitReject(8000, 'Request timeout')]) as any;
+      const data = await queryView('v_residents', 'id, full_name, room', {
+        limit: 5
+      });
 
-      if (result.error) throw result.error;
-
-      const residents = (result.data || []).map((resident: any) => ({
+      const residents = (data || []).map((resident: any) => ({
         ...resident,
         risk_score: Math.floor(Math.random() * 100),
         last_event: new Date(Date.now() - Math.random() * 86400000).toISOString()
@@ -220,7 +221,13 @@ export function useDashboardData() {
       setResidentsRisk(prev => ({ ...prev, residents, loading: false }));
     } catch (error) {
       const message = parseErr(error);
+      console.error('Dashboard: Failed to fetch residents risk:', error);
       setResidentsRisk(prev => ({ ...prev, error: message, loading: false }));
+      toast({
+        title: "Data Loading Error",
+        description: message,
+        variant: "destructive",
+      });
     }
   };
 

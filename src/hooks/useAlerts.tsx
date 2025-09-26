@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { queryView, rpc } from '@/lib/supaFetch';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { parseErr } from '@/lib/auth-utils';
 
 export interface Alert {
   id: string;
@@ -19,41 +21,39 @@ export const useAlerts = () => {
   const { toast } = useToast();
 
   const fetchAlerts = async () => {
+    setLoading(true);
     try {
-      // Fetch recent alerts
-      const { data: alertsData, error: alertsError } = await supabase
-        .from('alerts')
-        .select('id, created_at, resident_id, type, severity, is_open')
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (alertsError) throw alertsError;
+      // Fetch recent alerts using authorized view
+      const alertsData = await queryView<Alert>('v_alerts', 'id, created_at, resident_id, type, severity, is_open', {
+        orderBy: { column: 'created_at', ascending: false },
+        limit: 20
+      });
 
       // Fetch open alerts count
-      const { count: openCount, error: openError } = await supabase
-        .from('alerts')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_open', true);
-
-      if (openError) throw openError;
+      const openAlertsData = await queryView('v_alerts', 'id', {
+        filters: [{ column: 'is_open', operator: 'eq', value: true }],
+        limit: 1000
+      });
 
       // Fetch today's alerts count 
       const today = new Date().toISOString().split('T')[0];
-      const { count: todayCount, error: todayError } = await supabase
-        .from('alerts')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', `${today}T00:00:00.000Z`)
-        .lt('created_at', `${today}T23:59:59.999Z`);
+      const todayAlertsData = await queryView('v_alerts', 'id', {
+        filters: [
+          { column: 'created_at', operator: 'gte', value: `${today}T00:00:00.000Z` },
+          { column: 'created_at', operator: 'lt', value: `${today}T23:59:59.999Z` }
+        ],
+        limit: 1000
+      });
 
-      if (todayError) throw todayError;
-
-      setAlerts(alertsData || []);
-      setOpenAlertsCount(openCount || 0);
-      setTodayAlertsCount(todayCount || 0);
+      setAlerts(alertsData);
+      setOpenAlertsCount(openAlertsData.length);
+      setTodayAlertsCount(todayAlertsData.length);
     } catch (error: any) {
+      const errorMsg = parseErr(error);
+      console.error('useAlerts: Failed to fetch alerts:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to fetch alerts",
+        description: errorMsg,
         variant: "destructive",
       });
     } finally {
@@ -63,12 +63,7 @@ export const useAlerts = () => {
 
   const acknowledgeAlert = async (alertId: string) => {
     try {
-      const { error } = await supabase
-        .from('alerts')
-        .update({ is_open: false })
-        .eq('id', alertId);
-
-      if (error) throw error;
+      await rpc('ack_alert', { p_alert_id: alertId });
 
       toast({
         title: "Success",
@@ -78,9 +73,11 @@ export const useAlerts = () => {
       // Refresh data
       await fetchAlerts();
     } catch (error: any) {
+      const errorMsg = parseErr(error);
+      console.error('useAlerts: Failed to acknowledge alert:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to acknowledge alert",
+        description: errorMsg,
         variant: "destructive",
       });
     }
@@ -88,12 +85,7 @@ export const useAlerts = () => {
 
   const resolveAlert = async (alertId: string) => {
     try {
-      const { error } = await supabase
-        .from('alerts')
-        .update({ is_open: false })
-        .eq('id', alertId);
-
-      if (error) throw error;
+      await rpc('resolve_alert', { p_alert_id: alertId });
 
       toast({
         title: "Success",
@@ -103,9 +95,11 @@ export const useAlerts = () => {
       // Refresh data
       await fetchAlerts();
     } catch (error: any) {
+      const errorMsg = parseErr(error);
+      console.error('useAlerts: Failed to resolve alert:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to resolve alert",
+        description: errorMsg,
         variant: "destructive",
       });
     }

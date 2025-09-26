@@ -19,6 +19,11 @@ import { parseErr } from "@/lib/auth-utils";
 
 const residentSchema = z.object({
   full_name: z.string().trim().min(2, "Full name must be at least 2 characters").max(100),
+  age: z.string().optional().refine((val) => {
+    if (!val || val === '') return true;
+    const num = parseInt(val, 10);
+    return !isNaN(num) && num >= 0 && num <= 120;
+  }, "Age must be between 0 and 120"),
   dob: z.string().optional(),
   room: z.string().trim().max(10, "Room must be 10 characters or less").optional(),
   notes: z.string().trim().max(500).optional()
@@ -29,6 +34,7 @@ type ResidentForm = z.infer<typeof residentSchema>;
 interface Resident {
   id: string;
   full_name: string;
+  age?: number | null;
   dob: string | null;
   room: string | null;
   notes: string | null;
@@ -54,6 +60,7 @@ export default function Residents() {
     resolver: zodResolver(residentSchema),
     defaultValues: {
       full_name: '',
+      age: '',
       dob: '',
       room: '',
       notes: ''
@@ -65,6 +72,7 @@ export default function Residents() {
     try {
       const payload = {
         full_name: values.full_name.trim(),
+        age: values.age && values.age !== '' ? parseInt(values.age, 10) : null,
         dob: values.dob || null,
         room: values.room?.trim() || null,
         notes: values.notes?.trim() || null
@@ -93,6 +101,7 @@ export default function Residents() {
     try {
       const payload = {
         full_name: values.full_name.trim(),
+        age: values.age && values.age !== '' ? parseInt(values.age, 10) : null,
         dob: values.dob || null,
         room: values.room?.trim() || null,
         notes: values.notes?.trim() || null
@@ -133,6 +142,7 @@ export default function Residents() {
     setEditingResident(resident);
     form.reset({
       full_name: resident.full_name,
+      age: resident.age ? resident.age.toString() : '',
       dob: resident.dob || '',
       room: resident.room || '',
       notes: resident.notes || ''
@@ -170,6 +180,29 @@ export default function Residents() {
                             <FormLabel>Full Name</FormLabel>
                             <FormControl>
                               <Input {...field} disabled={saving} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="age"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Age</FormLabel>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                disabled={saving}
+                                placeholder="0-120"
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  if (value === '' || /^[0-9]*$/.test(value)) {
+                                    field.onChange(value);
+                                  }
+                                }}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -258,6 +291,29 @@ export default function Residents() {
                     <FormLabel>Full Name</FormLabel>
                     <FormControl>
                       <Input {...field} disabled={saving} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="age"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Age</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        disabled={saving}
+                        placeholder="0-120"
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === '' || /^[0-9]*$/.test(value)) {
+                            field.onChange(value);
+                          }
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

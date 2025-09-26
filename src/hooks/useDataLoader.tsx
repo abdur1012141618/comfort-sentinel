@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { waitReject, parseErr } from '@/lib/auth-utils';
+import { queryView } from '@/lib/supaFetch';
+import { parseErr } from '@/lib/auth-utils';
 import { useToast } from '@/hooks/use-toast';
 
 type TableName = 'residents' | 'fall_checks' | 'alerts' | 'profiles';
@@ -11,6 +11,22 @@ interface UseDataLoaderOptions {
   limit?: number;
   orderBy?: { column: string; ascending?: boolean };
 }
+
+// Map table names to their corresponding authorized views
+const getViewName = (table: TableName): string => {
+  switch (table) {
+    case 'residents':
+      return 'v_residents';
+    case 'alerts':
+      return 'v_alerts'; 
+    case 'fall_checks':
+      return 'v_fall_checks';
+    case 'profiles':
+      return 'profiles'; // profiles don't need a view
+    default:
+      return table;
+  }
+};
 
 export function useDataLoader<T>({ table, select = '*', limit, orderBy }: UseDataLoaderOptions) {
   const [data, setData] = useState<T[]>([]);
@@ -23,34 +39,22 @@ export function useDataLoader<T>({ table, select = '*', limit, orderBy }: UseDat
     setError(null);
 
     try {
+      const viewName = getViewName(table);
+      
       if (import.meta.env.DEV) {
-        console.log(`useDataLoader: Fetching data from ${table}...`);
+        console.log(`useDataLoader: Fetching data from ${viewName}...`);
       }
 
-      let query = supabase.from(table).select(select);
-      
-      if (limit) {
-        query = query.limit(limit);
-      }
-      
-      if (orderBy) {
-        query = query.order(orderBy.column, { ascending: orderBy.ascending ?? false });
-      }
-
-      const dataPromise = query;
-      const timeoutPromise = waitReject(8000, 'Request timeout');
-
-      const { data: result, error: fetchError } = await Promise.race([
-        dataPromise,
-        timeoutPromise
-      ]) as any;
-
-      if (fetchError) throw fetchError;
+      const result = await queryView(viewName, select, {
+        limit: limit ?? 50,
+        orderBy: orderBy ?? { column: 'created_at', ascending: false },
+        timeoutMs: 8000
+      });
 
       setData(result ?? []);
 
       if (import.meta.env.DEV) {
-        console.log(`useDataLoader: Successfully loaded ${result?.length || 0} records from ${table}`);
+        console.log(`useDataLoader: Successfully loaded ${result?.length || 0} records from ${viewName}`);
       }
     } catch (err) {
       const errorMsg = parseErr(err);

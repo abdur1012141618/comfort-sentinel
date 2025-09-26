@@ -22,6 +22,7 @@ import { Navigation } from "@/components/Navigation";
 import { LoadingState } from "@/components/LoadingState";
 import { useDataLoader } from "@/hooks/useDataLoader";
 import { updateFallCheck, insertFallCheck, deleteFallCheck, getErrorMessage } from "@/data/db";
+import { queryView } from "@/lib/supaFetch";
 import { parseErr } from "@/lib/auth-utils";
 
 interface Resident {
