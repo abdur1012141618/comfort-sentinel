@@ -127,39 +127,30 @@ export default function Falls() {
   const loadData = async () => {
     setLoading(true);
     try {
-      // Add timeout protection
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timed out')), 8000)
-      );
-      
-      const dataPromise = Promise.all([
-        supabase
-          .from('fall_checks')
-          .select('*')
-          .order('processed_at', { ascending: false }),
-        supabase
-          .from('residents')
-          .select('id, full_name')
-          .order('full_name')
+      // Load data from authorized views with proper ordering and limits
+      const [fallChecksData, residentsData] = await Promise.all([
+        queryView<FallCheck>('v_fall_checks', '*', {
+          orderBy: { column: 'processed_at', ascending: false },
+          limit: 100
+        }),
+        queryView<Resident>('v_residents', 'id, full_name', {
+          orderBy: { column: 'full_name', ascending: true },
+          limit: 200
+        })
       ]);
 
-      const [fallChecksResponse, residentsResponse] = await Promise.race([dataPromise, timeoutPromise]) as any;
-
-      if (fallChecksResponse.error) throw fallChecksResponse.error;
-      if (residentsResponse.error) throw residentsResponse.error;
-
       if (import.meta.env.DEV) {
-        console.log('Falls data loaded:', fallChecksResponse.data?.length, 'fall checks,', residentsResponse.data?.length, 'residents');
+        console.log('Falls data loaded:', fallChecksData?.length, 'fall checks,', residentsData?.length, 'residents');
       }
 
-      setFallChecks(fallChecksResponse.data || []);
-      setResidents(residentsResponse.data || []);
+      setFallChecks(fallChecksData || []);
+      setResidents(residentsData || []);
     } catch (error: any) {
-      console.error('Error loading data:', error);
-      const isTimeout = error.message === 'Request timed out';
+      console.error('Falls: Error loading data:', error);
+      const errorMsg = parseErr(error);
       toast({
-        title: isTimeout ? "Timeout" : "Error",
-        description: isTimeout ? "Request timed out. Please check your connection." : "Failed to load data. Please try again.",
+        title: "Loading Error",
+        description: errorMsg,
         variant: "destructive",
       });
     } finally {
@@ -238,10 +229,11 @@ export default function Falls() {
       setEditingFallCheck(null);
       form.reset();
     } catch (error) {
-      console.error('Error saving fall check:', error);
+      console.error('Falls: Error saving fall check:', error);
+      const errorMsg = parseErr(error);
       toast({
         title: "Error",
-        description: getErrorMessage(error),
+        description: errorMsg,
         variant: "destructive",
       });
     } finally {
@@ -275,10 +267,11 @@ export default function Falls() {
         description: "Fall check deleted successfully.",
       });
     } catch (error) {
-      console.error('Error deleting fall check:', error);
+      console.error('Falls: Error deleting fall check:', error);
+      const errorMsg = parseErr(error);
       toast({
         title: "Error",
-        description: getErrorMessage(error),
+        description: errorMsg,
         variant: "destructive",
       });
     }
@@ -295,15 +288,12 @@ export default function Falls() {
       setSubmitting(true);
       
       // 1. Ensure at least one resident exists
-      let { data: existingResidents, error: residentsError } = await supabase
-        .from('residents')
-        .select('*')
-        .limit(1);
-        
-      if (residentsError) throw residentsError;
+      const existingResidents = await queryView('v_residents', 'id', { limit: 1 });
+      
+      if (!existingResidents) throw new Error('Failed to check existing residents');
       
       let residentId;
-      if (!existingResidents || existingResidents.length === 0) {
+      if (existingResidents.length === 0) {
         // Create a test resident
         const { data: newResident, error: createError } = await supabase
           .from('residents')
@@ -345,10 +335,11 @@ export default function Falls() {
       navigate('/alerts');
       
     } catch (error) {
-      console.error('Error adding test data:', error);
+      console.error('Falls: Error adding test data:', error);
+      const errorMsg = parseErr(error);
       toast({
         title: "Error",
-        description: "Failed to add test data. Please try again.",
+        description: errorMsg,
         variant: "destructive",
       });
     } finally {
