@@ -6,16 +6,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, CalendarIcon } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
 import { LoadingState } from "@/components/LoadingState";
 import { useDataLoader } from "@/hooks/useDataLoader";
 import { insertResident, updateResident, deleteResident } from "@/data/db";
 import { parseErr } from "@/lib/auth-utils";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const residentSchema = z.object({
   full_name: z.string().trim().min(2, "Full name must be at least 2 characters").max(100),
@@ -24,7 +28,7 @@ const residentSchema = z.object({
     const num = parseInt(val, 10);
     return !isNaN(num) && num >= 0 && num <= 120;
   }, "Age must be between 0 and 120"),
-  dob: z.string().optional(),
+  dob: z.date().optional().nullable(),
   room: z.string().trim().max(10, "Room must be 10 characters or less").optional(),
   notes: z.string().trim().max(500).optional()
 });
@@ -61,7 +65,7 @@ export default function Residents() {
     defaultValues: {
       full_name: '',
       age: '',
-      dob: '',
+      dob: null,
       room: '',
       notes: ''
     }
@@ -73,7 +77,7 @@ export default function Residents() {
       const payload = {
         full_name: values.full_name.trim(),
         age: values.age && values.age !== '' ? parseInt(values.age, 10) : null,
-        dob: values.dob || null,
+        dob: values.dob ? format(values.dob, 'yyyy-MM-dd') : null,
         room: values.room?.trim() || null,
         notes: values.notes?.trim() || null
       };
@@ -102,7 +106,7 @@ export default function Residents() {
       const payload = {
         full_name: values.full_name.trim(),
         age: values.age && values.age !== '' ? parseInt(values.age, 10) : null,
-        dob: values.dob || null,
+        dob: values.dob ? format(values.dob, 'yyyy-MM-dd') : null,
         room: values.room?.trim() || null,
         notes: values.notes?.trim() || null
       };
@@ -143,7 +147,7 @@ export default function Residents() {
     form.reset({
       full_name: resident.full_name,
       age: resident.age ? resident.age.toString() : '',
-      dob: resident.dob || '',
+      dob: resident.dob ? new Date(resident.dob) : null,
       room: resident.room || '',
       notes: resident.notes || ''
     });
@@ -194,16 +198,72 @@ export default function Residents() {
                             <FormControl>
                               <Input 
                                 {...field} 
+                                type="text"
+                                inputMode="numeric"
                                 disabled={saving}
                                 placeholder="0-120"
                                 onChange={(e) => {
                                   const value = e.target.value;
-                                  if (value === '' || /^[0-9]*$/.test(value)) {
+                                  if (value === '' || /^\d*$/.test(value)) {
                                     field.onChange(value);
+                                  }
+                                }}
+                                onBlur={() => {
+                                  if (field.value && field.value !== '') {
+                                    const num = parseInt(field.value, 10);
+                                    if (isNaN(num) || num < 0 || num > 120) {
+                                      form.setError('age', { message: 'Age must be between 0 and 120' });
+                                    }
                                   }
                                 }}
                               />
                             </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="dob"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Date of Birth</FormLabel>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button
+                                    variant="outline"
+                                    className={cn(
+                                      "pl-3 text-left font-normal",
+                                      !field.value && "text-muted-foreground"
+                                    )}
+                                    disabled={saving}
+                                  >
+                                    {field.value ? (
+                                      format(field.value, "PPP")
+                                    ) : (
+                                      <span>Pick a date</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value || undefined}
+                                  onSelect={field.onChange}
+                                  disabled={(date) =>
+                                    date > new Date() || date < new Date("1900-01-01")
+                                  }
+                                  captionLayout="dropdown"
+                                  fromYear={1920}
+                                  toYear={new Date().getFullYear()}
+                                  initialFocus
+                                  className="pointer-events-auto"
+                                />
+                              </PopoverContent>
+                            </Popover>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -305,16 +365,72 @@ export default function Residents() {
                     <FormControl>
                       <Input 
                         {...field} 
+                        type="text"
+                        inputMode="numeric"
                         disabled={saving}
                         placeholder="0-120"
                         onChange={(e) => {
                           const value = e.target.value;
-                          if (value === '' || /^[0-9]*$/.test(value)) {
+                          if (value === '' || /^\d*$/.test(value)) {
                             field.onChange(value);
+                          }
+                        }}
+                        onBlur={() => {
+                          if (field.value && field.value !== '') {
+                            const num = parseInt(field.value, 10);
+                            if (isNaN(num) || num < 0 || num > 120) {
+                              form.setError('age', { message: 'Age must be between 0 and 120' });
+                            }
                           }
                         }}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="dob"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Date of Birth</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                            disabled={saving}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value || undefined}
+                          onSelect={field.onChange}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date("1900-01-01")
+                          }
+                          captionLayout="dropdown"
+                          fromYear={1920}
+                          toYear={new Date().getFullYear()}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}

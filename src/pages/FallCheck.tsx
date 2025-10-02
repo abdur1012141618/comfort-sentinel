@@ -29,6 +29,7 @@ interface FallCheckResult {
 
 const FallCheck = () => {
   const [age, setAge] = useState<string>('');
+  const [ageError, setAgeError] = useState<string>('');
   const [history, setHistory] = useState<string>('');
   const [gait, setGait] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -41,6 +42,12 @@ const FallCheck = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+    setAgeError('');
+
+    if (!age || age === '') {
+      setAgeError('Age is required');
+      return;
+    }
 
     try {
       const validatedData = fallCheckSchema.parse({
@@ -103,10 +110,28 @@ const FallCheck = () => {
 
   const resetForm = () => {
     setAge('');
+    setAgeError('');
     setHistory('');
     setGait('');
     setResult(null);
     setErrors({});
+  };
+
+  const handleAgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === '' || /^\d*$/.test(value)) {
+      setAge(value);
+      setAgeError('');
+    }
+  };
+
+  const handleAgeBlur = () => {
+    if (age !== '' && age !== '0') {
+      const num = parseInt(age, 10);
+      if (isNaN(num) || num < 0 || num > 120) {
+        setAgeError('Age must be between 0 and 120');
+      }
+    }
   };
 
   return (
@@ -138,17 +163,17 @@ const FallCheck = () => {
                   <Label htmlFor="age">Age</Label>
                   <Input
                     id="age"
-                    type="number"
-                    min="0"
-                    max="120"
+                    type="text"
+                    inputMode="numeric"
                     value={age}
-                    onChange={(e) => setAge(e.target.value)}
-                    placeholder="Enter age"
+                    onChange={handleAgeChange}
+                    onBlur={handleAgeBlur}
+                    placeholder="0-120"
                     required
-                    className={errors.age ? "border-destructive" : ""}
+                    className={ageError || errors.age ? "border-destructive" : ""}
                   />
-                  {errors.age && (
-                    <p className="text-sm text-destructive">{errors.age}</p>
+                  {(ageError || errors.age) && (
+                    <p className="text-sm text-destructive">{ageError || errors.age}</p>
                   )}
                 </div>
 

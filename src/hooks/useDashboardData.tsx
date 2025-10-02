@@ -231,6 +231,15 @@ export function useDashboardData() {
     }
   };
 
+  const refetchAll = () => {
+    fetchOpenAlerts();
+    fetchTodayAlerts();
+    fetchMedianAckTime();
+    fetchRecentAlerts();
+    fetchRoomsAttention();
+    fetchResidentsRisk();
+  };
+
   useEffect(() => {
     // Set retry functions
     setOpenAlerts(prev => ({ ...prev, retry: fetchOpenAlerts }));
@@ -241,12 +250,7 @@ export function useDashboardData() {
     setResidentsRisk(prev => ({ ...prev, retry: fetchResidentsRisk }));
 
     // Initial fetch
-    fetchOpenAlerts();
-    fetchTodayAlerts();
-    fetchMedianAckTime();
-    fetchRecentAlerts();
-    fetchRoomsAttention();
-    fetchResidentsRisk();
+    refetchAll();
   }, []);
 
   return {
@@ -255,6 +259,7 @@ export function useDashboardData() {
     medianAckTime,
     recentAlerts,
     roomsAttention,
-    residentsRisk
+    residentsRisk,
+    refetchAll
   };
 }

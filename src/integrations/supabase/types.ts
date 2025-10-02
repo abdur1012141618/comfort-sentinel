@@ -224,6 +224,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string | null
+          is_open: boolean | null
           org_id: string | null
           resident_id: string | null
           severity: string | null
@@ -330,6 +331,10 @@ export type Database = {
       resolve_alert: {
         Args: { p_alert_id: string }
         Returns: undefined
+      }
+      seed_test_data: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
     }
     Enums: {

@@ -9,14 +9,16 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ackAlert, resolveAlert } from '@/api/alerts';
 import { useToast } from '@/hooks/use-toast';
-import { AlertTriangle, Clock, Users, TrendingUp, CheckCircle2, XCircle } from 'lucide-react';
+import { AlertTriangle, Clock, Users, TrendingUp, CheckCircle2, XCircle, Database } from 'lucide-react';
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Dashboard() {
   const { session } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
   
   const {
     openAlerts,
@@ -24,7 +26,8 @@ export default function Dashboard() {
     medianAckTime,
     recentAlerts,
     roomsAttention,
-    residentsRisk
+    residentsRisk,
+    refetchAll
   } = useDashboardData();
 
   const handleAck = async (id: string) => {
@@ -55,6 +58,34 @@ export default function Dashboard() {
     }
   };
 
+  const handleSeedTestData = async () => {
+    try {
+      setSeeding(true);
+      const { data, error } = await supabase.rpc('seed_test_data');
+      
+      if (error) throw error;
+      
+      const result = data as { residents: number; alerts: number; fall_checks: number };
+      
+      toast({
+        title: "Test Data Added",
+        description: `Added ${result.residents} residents, ${result.alerts} alerts, and ${result.fall_checks} fall checks.`,
+      });
+      
+      // Refetch all dashboard data
+      refetchAll();
+    } catch (e: any) {
+      console.error('Dashboard: Error seeding test data:', e);
+      toast({
+        title: "Error",
+        description: e?.message ?? "Failed to add test data",
+        variant: "destructive"
+      });
+    } finally {
+      setSeeding(false);
+    }
+  };
+
   useEffect(() => {
     if (!session) {
       navigate('/login', { replace: true });
@@ -78,11 +109,17 @@ export default function Dashboard() {
       <Navigation />
       
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Overview of alerts, residents, and system status
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground">
+              Overview of alerts, residents, and system status
+            </p>
+          </div>
+          <Button onClick={handleSeedTestData} disabled={seeding} variant="outline">
+            <Database className="h-4 w-4 mr-2" />
+            {seeding ? "Adding..." : "Add Test Data"}
+          </Button>
         </div>
 
         {/* Stats Grid */}
