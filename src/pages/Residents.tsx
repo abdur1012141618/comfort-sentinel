@@ -197,24 +197,17 @@ export default function Residents() {
                             <FormLabel>Age</FormLabel>
                             <FormControl>
                               <Input 
-                                {...field} 
                                 type="text"
                                 inputMode="numeric"
                                 disabled={saving}
                                 placeholder="0-120"
+                                value={field.value || ''}
                                 onChange={(e) => {
-                                  const value = e.target.value;
-                                  if (value === '' || /^\d*$/.test(value)) {
-                                    field.onChange(value);
-                                  }
-                                }}
-                                onBlur={() => {
-                                  if (field.value && field.value !== '') {
-                                    const num = parseInt(field.value, 10);
-                                    if (isNaN(num) || num < 0 || num > 120) {
-                                      form.setError('age', { message: 'Age must be between 0 and 120' });
-                                    }
-                                  }
+                                  let v = e.target.value.replace(/[^\d]/g, "");
+                                  if (v === "") { field.onChange(""); return; }
+                                  let n = Math.min(120, parseInt(v, 10));
+                                  const clean = Number.isNaN(n) ? "" : String(n);
+                                  field.onChange(clean);
                                 }}
                               />
                             </FormControl>
@@ -257,8 +250,8 @@ export default function Residents() {
                                     date > new Date() || date < new Date("1900-01-01")
                                   }
                                   captionLayout="dropdown"
-                                  fromYear={1920}
-                                  toYear={new Date().getFullYear()}
+                                  fromYear={2015}
+                                  toYear={2035}
                                   initialFocus
                                   className="pointer-events-auto"
                                 />
@@ -364,24 +357,17 @@ export default function Residents() {
                     <FormLabel>Age</FormLabel>
                     <FormControl>
                       <Input 
-                        {...field} 
                         type="text"
                         inputMode="numeric"
                         disabled={saving}
                         placeholder="0-120"
+                        value={field.value || ''}
                         onChange={(e) => {
-                          const value = e.target.value;
-                          if (value === '' || /^\d*$/.test(value)) {
-                            field.onChange(value);
-                          }
-                        }}
-                        onBlur={() => {
-                          if (field.value && field.value !== '') {
-                            const num = parseInt(field.value, 10);
-                            if (isNaN(num) || num < 0 || num > 120) {
-                              form.setError('age', { message: 'Age must be between 0 and 120' });
-                            }
-                          }
+                          let v = e.target.value.replace(/[^\d]/g, "");
+                          if (v === "") { field.onChange(""); return; }
+                          let n = Math.min(120, parseInt(v, 10));
+                          const clean = Number.isNaN(n) ? "" : String(n);
+                          field.onChange(clean);
                         }}
                       />
                     </FormControl>
@@ -424,8 +410,8 @@ export default function Residents() {
                             date > new Date() || date < new Date("1900-01-01")
                           }
                           captionLayout="dropdown"
-                          fromYear={1920}
-                          toYear={new Date().getFullYear()}
+                          fromYear={2015}
+                          toYear={2035}
                           initialFocus
                           className="pointer-events-auto"
                         />

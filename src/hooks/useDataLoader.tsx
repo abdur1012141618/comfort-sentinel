@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { queryView } from '@/lib/supaFetch';
 import { parseErr } from '@/lib/auth-utils';
 import { useToast } from '@/hooks/use-toast';
+import { withRetry } from '@/lib/retry';
 
 type TableName = 'residents' | 'fall_checks' | 'alerts' | 'profiles';
 
@@ -45,11 +46,13 @@ export function useDataLoader<T>({ table, select = '*', limit, orderBy }: UseDat
         console.log(`useDataLoader: Fetching data from ${viewName}...`);
       }
 
-      const result = await queryView(viewName, select, {
-        limit: limit ?? 50,
-        orderBy: orderBy ?? { column: 'created_at', ascending: false },
-        timeoutMs: 8000
-      });
+      const result = await withRetry(() => 
+        queryView(viewName, select, {
+          limit: limit ?? 50,
+          orderBy: orderBy ?? { column: 'created_at', ascending: false },
+          timeoutMs: 8000
+        })
+      );
 
       setData(result ?? []);
 

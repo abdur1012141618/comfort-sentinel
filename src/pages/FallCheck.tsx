@@ -28,8 +28,8 @@ interface FallCheckResult {
 }
 
 const FallCheck = () => {
-  const [age, setAge] = useState<string>('');
-  const [ageError, setAgeError] = useState<string>('');
+  const [ageStr, setAgeStr] = useState<string>('');
+  const [age, setAge] = useState<number | undefined>(undefined);
   const [history, setHistory] = useState<string>('');
   const [gait, setGait] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -42,16 +42,15 @@ const FallCheck = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    setAgeError('');
 
-    if (!age || age === '') {
-      setAgeError('Age is required');
+    if (age === undefined) {
+      setErrors({ age: 'Age is required' });
       return;
     }
 
     try {
       const validatedData = fallCheckSchema.parse({
-        age: parseInt(age),
+        age: age,
         history: history.trim(),
         gait: gait as 'normal' | 'shuffling' | 'unstable' | 'slow'
       });
@@ -109,29 +108,12 @@ const FallCheck = () => {
   };
 
   const resetForm = () => {
-    setAge('');
-    setAgeError('');
+    setAgeStr('');
+    setAge(undefined);
     setHistory('');
     setGait('');
     setResult(null);
     setErrors({});
-  };
-
-  const handleAgeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value === '' || /^\d*$/.test(value)) {
-      setAge(value);
-      setAgeError('');
-    }
-  };
-
-  const handleAgeBlur = () => {
-    if (age !== '' && age !== '0') {
-      const num = parseInt(age, 10);
-      if (isNaN(num) || num < 0 || num > 120) {
-        setAgeError('Age must be between 0 and 120');
-      }
-    }
   };
 
   return (
@@ -165,15 +147,21 @@ const FallCheck = () => {
                     id="age"
                     type="text"
                     inputMode="numeric"
-                    value={age}
-                    onChange={handleAgeChange}
-                    onBlur={handleAgeBlur}
+                    value={ageStr}
+                    onChange={(e) => {
+                      let v = e.target.value.replace(/[^\d]/g, "");
+                      if (v === "") { setAgeStr(""); setAge(undefined); return; }
+                      let n = Math.min(120, parseInt(v, 10));
+                      const clean = Number.isNaN(n) ? "" : String(n);
+                      setAgeStr(clean);
+                      setAge(Number.isNaN(n) ? undefined : n);
+                    }}
                     placeholder="0-120"
                     required
-                    className={ageError || errors.age ? "border-destructive" : ""}
+                    className={errors.age ? "border-destructive" : ""}
                   />
-                  {(ageError || errors.age) && (
-                    <p className="text-sm text-destructive">{ageError || errors.age}</p>
+                  {errors.age && (
+                    <p className="text-sm text-destructive">{errors.age}</p>
                   )}
                 </div>
 

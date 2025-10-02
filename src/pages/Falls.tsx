@@ -24,6 +24,7 @@ import { useDataLoader } from "@/hooks/useDataLoader";
 import { updateFallCheck, insertFallCheck, deleteFallCheck, getErrorMessage } from "@/data/db";
 import { queryView } from "@/lib/supaFetch";
 import { parseErr } from "@/lib/auth-utils";
+import { listResidentsForSelect, type ResidentOption } from "@/api/residents";
 
 interface Resident {
   id: string;
@@ -61,10 +62,15 @@ export default function Falls() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [fallChecks, setFallChecks] = useState<FallCheck[]>([]);
   const [residents, setResidents] = useState<Resident[]>([]);
+  const [residentOptions, setResidentOptions] = useState<ResidentOption[]>([]);
+  const [loadingResidents, setLoadingResidents] = useState(false);
+  const [residentsError, setResidentsError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFallCheck, setEditingFallCheck] = useState<FallCheck | null>(null);
+  const [ageStr, setAgeStr] = useState<string>('');
+  const [ageNum, setAgeNum] = useState<number | undefined>(undefined);
   
   // Filters from URL params
   const [selectedResident, setSelectedResident] = useState(searchParams.get('resident') || "all");
@@ -98,8 +104,28 @@ export default function Falls() {
   useEffect(() => {
     checkAuth();
     loadData();
+    loadResidentOptions();
     setupRealtimeSubscription();
   }, []);
+
+  const loadResidentOptions = async () => {
+    setLoadingResidents(true);
+    setResidentsError(null);
+    try {
+      const options = await listResidentsForSelect();
+      setResidentOptions(options);
+    } catch (error: any) {
+      const errorMsg = parseErr(error);
+      setResidentsError(errorMsg);
+      toast({
+        title: "Error loading residents",
+        description: errorMsg,
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingResidents(false);
+    }
+  };
 
   // Update URL params when filters change
   useEffect(() => {
@@ -243,6 +269,8 @@ export default function Falls() {
 
   const handleEdit = (fallCheck: FallCheck) => {
     setEditingFallCheck(fallCheck);
+    setAgeStr(String(fallCheck.age));
+    setAgeNum(fallCheck.age);
     form.reset({
       resident_id: fallCheck.resident_id,
       age: fallCheck.age,
@@ -279,6 +307,8 @@ export default function Falls() {
 
   const openAddModal = () => {
     setEditingFallCheck(null);
+    setAgeStr('');
+    setAgeNum(undefined);
     form.reset();
     setIsModalOpen(true);
   };
@@ -512,20 +542,27 @@ export default function Falls() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Resident</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            value={field.value}
+                            disabled={loadingResidents}
+                          >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Select a resident" />
+                                <SelectValue placeholder={loadingResidents ? "Loading..." : "Select a resident"} />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
-                              {residents.map((resident) => (
-                                <SelectItem key={resident.id} value={resident.id}>
-                                  {resident.full_name}
+                            <SelectContent className="bg-background border z-50">
+                              {residentOptions.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  {opt.label}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
+                          {residentsError && (
+                            <p className="text-sm text-destructive">{residentsError}</p>
+                          )}
                           <FormMessage />
                         </FormItem>
                       )}
@@ -539,11 +576,19 @@ export default function Falls() {
                           <FormLabel>Age</FormLabel>
                           <FormControl>
                             <Input
-                              type="number"
-                              min="0"
-                              max="120"
-                              {...field}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
+                              type="text"
+                              inputMode="numeric"
+                              value={ageStr}
+                              onChange={(e) => {
+                                let v = e.target.value.replace(/[^\d]/g, "");
+                                if (v === "") { setAgeStr(""); setAgeNum(undefined); field.onChange(0); return; }
+                                let n = Math.min(120, parseInt(v, 10));
+                                const clean = Number.isNaN(n) ? "" : String(n);
+                                setAgeStr(clean);
+                                setAgeNum(Number.isNaN(n) ? undefined : n);
+                                field.onChange(Number.isNaN(n) ? 0 : n);
+                              }}
+                              placeholder="0-120"
                             />
                           </FormControl>
                           <FormMessage />
@@ -673,7 +718,16 @@ export default function Falls() {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className="p-3 pointer-events-auto" />
+                  <Calendar 
+                    mode="single" 
+                    selected={dateFrom} 
+                    onSelect={setDateFrom} 
+                    initialFocus 
+                    className="p-3 pointer-events-auto"
+                    captionLayout="dropdown"
+                    fromYear={2015}
+                    toYear={2035}
+                  />
                 </PopoverContent>
               </Popover>
             </div>
@@ -688,7 +742,16 @@ export default function Falls() {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className="p-3 pointer-events-auto" />
+                  <Calendar 
+                    mode="single" 
+                    selected={dateTo} 
+                    onSelect={setDateTo} 
+                    initialFocus 
+                    className="p-3 pointer-events-auto"
+                    captionLayout="dropdown"
+                    fromYear={2015}
+                    toYear={2035}
+                  />
                 </PopoverContent>
               </Popover>
             </div>
