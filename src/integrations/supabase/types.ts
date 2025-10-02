@@ -78,6 +78,7 @@ export type Database = {
         Row: {
           age: number
           confidence: number
+          created_at: string
           gait: string
           history: string
           id: string
@@ -90,6 +91,7 @@ export type Database = {
         Insert: {
           age: number
           confidence: number
+          created_at?: string
           gait: string
           history: string
           id?: string
@@ -102,6 +104,7 @@ export type Database = {
         Update: {
           age?: number
           confidence?: number
+          created_at?: string
           gait?: string
           history?: string
           id?: string
@@ -220,45 +223,12 @@ export type Database = {
       v_alerts: {
         Row: {
           created_at: string | null
-          data: Json | null
           id: string | null
-          is_open: boolean | null
           org_id: string | null
           resident_id: string | null
-          resolved_at: string | null
           severity: string | null
-          source_video_url: string | null
           status: Database["public"]["Enums"]["alert_status"] | null
-          timestamp: string | null
           type: Database["public"]["Enums"]["alert_type"] | null
-        }
-        Insert: {
-          created_at?: string | null
-          data?: Json | null
-          id?: string | null
-          is_open?: boolean | null
-          org_id?: string | null
-          resident_id?: string | null
-          resolved_at?: string | null
-          severity?: string | null
-          source_video_url?: string | null
-          status?: Database["public"]["Enums"]["alert_status"] | null
-          timestamp?: string | null
-          type?: Database["public"]["Enums"]["alert_type"] | null
-        }
-        Update: {
-          created_at?: string | null
-          data?: Json | null
-          id?: string | null
-          is_open?: boolean | null
-          org_id?: string | null
-          resident_id?: string | null
-          resolved_at?: string | null
-          severity?: string | null
-          source_video_url?: string | null
-          status?: Database["public"]["Enums"]["alert_status"] | null
-          timestamp?: string | null
-          type?: Database["public"]["Enums"]["alert_type"] | null
         }
         Relationships: [
           {
@@ -319,36 +289,11 @@ export type Database = {
       v_residents: {
         Row: {
           created_at: string | null
-          created_by: string | null
-          dob: string | null
           full_name: string | null
-          gender: string | null
           id: string | null
           notes: string | null
           org_id: string | null
           room: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          dob?: string | null
-          full_name?: string | null
-          gender?: string | null
-          id?: string | null
-          notes?: string | null
-          org_id?: string | null
-          room?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string | null
-          dob?: string | null
-          full_name?: string | null
-          gender?: string | null
-          id?: string | null
-          notes?: string | null
-          org_id?: string | null
-          room?: string | null
         }
         Relationships: []
       }
