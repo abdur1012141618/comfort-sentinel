@@ -6,20 +6,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, CalendarIcon } from "lucide-react";
+import { Plus, Edit, Trash2 } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
 import { LoadingState } from "@/components/LoadingState";
 import { useDataLoader } from "@/hooks/useDataLoader";
 import { insertResident, updateResident, deleteResident } from "@/data/db";
 import { parseErr } from "@/lib/auth-utils";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { AgeInput } from "@/components/AgeInput";
+import { DatePickerWithManual } from "@/components/DatePickerWithManual";
 
 const residentSchema = z.object({
   full_name: z.string().trim().min(2, "Full name must be at least 2 characters").max(100),
@@ -196,19 +195,10 @@ export default function Residents() {
                           <FormItem>
                             <FormLabel>Age</FormLabel>
                             <FormControl>
-                              <Input 
-                                type="text"
-                                inputMode="numeric"
-                                disabled={saving}
-                                placeholder="0-120"
+                              <AgeInput
                                 value={field.value || ''}
-                                onChange={(e) => {
-                                  let v = e.target.value.replace(/[^\d]/g, "");
-                                  if (v === "") { field.onChange(""); return; }
-                                  let n = Math.min(120, parseInt(v, 10));
-                                  const clean = Number.isNaN(n) ? "" : String(n);
-                                  field.onChange(clean);
-                                }}
+                                onChange={field.onChange}
+                                disabled={saving}
                               />
                             </FormControl>
                             <FormMessage />
@@ -219,44 +209,16 @@ export default function Residents() {
                         control={form.control}
                         name="dob"
                         render={({ field }) => (
-                          <FormItem className="flex flex-col">
+                          <FormItem>
                             <FormLabel>Date of Birth</FormLabel>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <FormControl>
-                                  <Button
-                                    variant="outline"
-                                    className={cn(
-                                      "pl-3 text-left font-normal",
-                                      !field.value && "text-muted-foreground"
-                                    )}
-                                    disabled={saving}
-                                  >
-                                    {field.value ? (
-                                      format(field.value, "PPP")
-                                    ) : (
-                                      <span>Pick a date</span>
-                                    )}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                  </Button>
-                                </FormControl>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                  mode="single"
-                                  selected={field.value || undefined}
-                                  onSelect={field.onChange}
-                                  disabled={(date) =>
-                                    date > new Date() || date < new Date("1900-01-01")
-                                  }
-                                  captionLayout="dropdown"
-                                  fromYear={2015}
-                                  toYear={2035}
-                                  initialFocus
-                                  className="pointer-events-auto"
-                                />
-                              </PopoverContent>
-                            </Popover>
+                            <FormControl>
+                              <DatePickerWithManual
+                                value={field.value || undefined}
+                                onChange={field.onChange}
+                                disabled={saving}
+                                disableFuture
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -356,19 +318,10 @@ export default function Residents() {
                   <FormItem>
                     <FormLabel>Age</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="text"
-                        inputMode="numeric"
-                        disabled={saving}
-                        placeholder="0-120"
+                      <AgeInput
                         value={field.value || ''}
-                        onChange={(e) => {
-                          let v = e.target.value.replace(/[^\d]/g, "");
-                          if (v === "") { field.onChange(""); return; }
-                          let n = Math.min(120, parseInt(v, 10));
-                          const clean = Number.isNaN(n) ? "" : String(n);
-                          field.onChange(clean);
-                        }}
+                        onChange={field.onChange}
+                        disabled={saving}
                       />
                     </FormControl>
                     <FormMessage />
@@ -379,44 +332,16 @@ export default function Residents() {
                 control={form.control}
                 name="dob"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem>
                     <FormLabel>Date of Birth</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                            disabled={saving}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value || undefined}
-                          onSelect={field.onChange}
-                          disabled={(date) =>
-                            date > new Date() || date < new Date("1900-01-01")
-                          }
-                          captionLayout="dropdown"
-                          fromYear={2015}
-                          toYear={2035}
-                          initialFocus
-                          className="pointer-events-auto"
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <FormControl>
+                      <DatePickerWithManual
+                        value={field.value || undefined}
+                        onChange={field.onChange}
+                        disabled={saving}
+                        disableFuture
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -47,7 +47,7 @@ interface FallCheck {
 
 const fallCheckSchema = z.object({
   resident_id: z.string().min(1, "Resident is required"),
-  age: z.number().min(0).max(120),
+  age: z.string().min(1, "Age is required"),
   confidence: z.number().min(0).max(1).step(0.01),
   gait: z.string(),
   history: z.string().optional(),
@@ -89,7 +89,7 @@ export default function Falls() {
     resolver: zodResolver(fallCheckSchema),
     defaultValues: {
       resident_id: "",
-      age: 0,
+      age: "",
       confidence: 0,
       gait: "",
       history: "",
@@ -195,10 +195,20 @@ export default function Falls() {
     
     try {
       setSubmitting(true);
-      const is_fall = calculateIsFall(data.age, data.history || '', data.gait);
+      const ageNum = parseInt(data.age, 10);
+      if (isNaN(ageNum) || ageNum < 0 || ageNum > 120) {
+        toast({
+          title: "Invalid Age",
+          description: "Age must be between 0 and 120",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const is_fall = calculateIsFall(ageNum, data.history || '', data.gait);
       const payload = { 
         resident_id: data.resident_id,
-        age: data.age,
+        age: ageNum,
         confidence: data.confidence,
         gait: data.gait,
         history: data.history || '',
@@ -247,7 +257,7 @@ export default function Falls() {
     setEditingFallCheck(fallCheck);
     form.reset({
       resident_id: fallCheck.resident_id,
-      age: fallCheck.age,
+      age: fallCheck.age.toString(),
       confidence: fallCheck.confidence,
       gait: fallCheck.gait,
       history: fallCheck.history || "",

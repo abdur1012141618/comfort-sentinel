@@ -58,12 +58,10 @@ export default function Dashboard() {
     }
   };
 
-  const handleSeedTestData = async () => {
+  const handleSeedDemo = async () => {
+    setSeeding(true);
     try {
-      setSeeding(true);
-      // Use type assertion for seed_demo as it's not in generated types yet
-      const { error } = await (supabase.rpc as any)('seed_demo', { min_rows: 5 });
-      
+      const { error } = await supabase.rpc('seed_test_data');
       if (error) {
         if (error.message?.includes('function') || error.code === '42883') {
           toast({
@@ -71,9 +69,10 @@ export default function Dashboard() {
             description: "The seed_demo function is not available. Please check your database setup.",
             variant: "destructive"
           });
-          return;
+        } else {
+          throw error;
         }
-        throw error;
+        return;
       }
       
       toast({
@@ -125,7 +124,7 @@ export default function Dashboard() {
               Overview of alerts, residents, and system status
             </p>
           </div>
-          <Button onClick={handleSeedTestData} disabled={seeding} variant="outline">
+          <Button onClick={handleSeedDemo} disabled={seeding} variant="outline">
             <Database className="h-4 w-4 mr-2" />
             {seeding ? "Adding..." : "Add Test Data"}
           </Button>

@@ -86,7 +86,7 @@ export function DatePickerWithManual({
               return date < new Date("1900-01-01");
             }}
             captionLayout="dropdown"
-            fromYear={2000}
+            fromYear={1900}
             toYear={2035}
             initialFocus
             className="pointer-events-auto"

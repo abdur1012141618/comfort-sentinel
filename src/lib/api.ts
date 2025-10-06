@@ -16,8 +16,8 @@ export async function withRetry<T>(
     } catch (error) {
       lastError = error;
       if (i < attempts - 1) {
-        // Wait before retry (exponential backoff)
-        await new Promise(resolve => setTimeout(resolve, (i + 1) * 300));
+        // Exponential backoff: 300ms, 600ms, 1200ms...
+        await new Promise(resolve => setTimeout(resolve, 300 * Math.pow(2, i)));
       }
     }
   }
@@ -37,8 +37,8 @@ export async function fetchView<T = any>(
     filters?: Array<{ column: string; operator: string; value: any }>;
   } = {}
 ): Promise<T[]> {
-  const { orderBy, limit = 50, filters = [] } = options;
-  const timeoutMs = 6000;
+  const { orderBy, limit = 200, filters = [] } = options;
+  const timeoutMs = 7000;
 
   return withRetry(async () => {
     const controller = new AbortController();

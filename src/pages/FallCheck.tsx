@@ -31,7 +31,7 @@ interface FallCheckResult {
 
 const FallCheck = () => {
   const [residentId, setResidentId] = useState<string>('');
-  const [age, setAge] = useState<number | undefined>(undefined);
+  const [age, setAge] = useState<string>('');
   const [history, setHistory] = useState<string>('');
   const [gait, setGait] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -45,15 +45,21 @@ const FallCheck = () => {
     e.preventDefault();
     setErrors({});
 
-    if (age === undefined) {
+    if (!age || age === '') {
       setErrors({ age: 'Age is required' });
+      return;
+    }
+
+    const parsedAge = parseInt(age, 10);
+    if (isNaN(parsedAge) || parsedAge < 0 || parsedAge > 120) {
+      setErrors({ age: 'Age must be between 0 and 120' });
       return;
     }
 
     try {
       const validatedData = fallCheckSchema.parse({
         resident_id: residentId,
-        age: age,
+        age: parsedAge,
         history: history.trim(),
         gait: gait as 'normal' | 'shuffling' | 'unstable' | 'slow'
       });
@@ -112,7 +118,7 @@ const FallCheck = () => {
 
   const resetForm = () => {
     setResidentId('');
-    setAge(undefined);
+    setAge('');
     setHistory('');
     setGait('');
     setResult(null);
