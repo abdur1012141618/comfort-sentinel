@@ -9,22 +9,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, CalendarIcon, TestTube, ArrowUpDown, Download } from "lucide-react";
+import { Plus, Edit, Trash2, TestTube, ArrowUpDown, Download } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Navigation } from "@/components/Navigation";
 import { LoadingState } from "@/components/LoadingState";
 import { useDataLoader } from "@/hooks/useDataLoader";
-import { updateFallCheck, insertFallCheck, deleteFallCheck, getErrorMessage } from "@/data/db";
-import { queryView } from "@/lib/supaFetch";
+import { updateFallCheck, insertFallCheck, deleteFallCheck } from "@/data/db";
+import { fetchView } from "@/lib/api";
 import { parseErr } from "@/lib/auth-utils";
-import { listResidentsForSelect, type ResidentOption } from "@/api/residents";
+import { ResidentSelect } from "@/components/ResidentSelect";
+import { AgeInput } from "@/components/AgeInput";
+import { DatePickerWithManual } from "@/components/DatePickerWithManual";
 
 interface Resident {
   id: string;
@@ -62,15 +62,10 @@ export default function Falls() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [fallChecks, setFallChecks] = useState<FallCheck[]>([]);
   const [residents, setResidents] = useState<Resident[]>([]);
-  const [residentOptions, setResidentOptions] = useState<ResidentOption[]>([]);
-  const [loadingResidents, setLoadingResidents] = useState(false);
-  const [residentsError, setResidentsError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFallCheck, setEditingFallCheck] = useState<FallCheck | null>(null);
-  const [ageStr, setAgeStr] = useState<string>('');
-  const [ageNum, setAgeNum] = useState<number | undefined>(undefined);
   
   // Filters from URL params
   const [selectedResident, setSelectedResident] = useState(searchParams.get('resident') || "all");
@@ -104,28 +99,8 @@ export default function Falls() {
   useEffect(() => {
     checkAuth();
     loadData();
-    loadResidentOptions();
     setupRealtimeSubscription();
   }, []);
-
-  const loadResidentOptions = async () => {
-    setLoadingResidents(true);
-    setResidentsError(null);
-    try {
-      const options = await listResidentsForSelect();
-      setResidentOptions(options);
-    } catch (error: any) {
-      const errorMsg = parseErr(error);
-      setResidentsError(errorMsg);
-      toast({
-        title: "Error loading residents",
-        description: errorMsg,
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingResidents(false);
-    }
-  };
 
   // Update URL params when filters change
   useEffect(() => {
@@ -153,15 +128,14 @@ export default function Falls() {
   const loadData = async () => {
     setLoading(true);
     try {
-      // Load data from authorized views with proper ordering and limits
       const [fallChecksData, residentsData] = await Promise.all([
-        queryView<FallCheck>('v_fall_checks', '*', {
+        fetchView<FallCheck>('v_fall_checks', '*', {
           orderBy: { column: 'processed_at', ascending: false },
-          limit: 100
+          limit: 50
         }),
-        queryView<Resident>('v_residents', 'id, full_name', {
+        fetchView<Resident>('v_residents', 'id, full_name', {
           orderBy: { column: 'full_name', ascending: true },
-          limit: 200
+          limit: 50
         })
       ]);
 
@@ -179,6 +153,8 @@ export default function Falls() {
         description: errorMsg,
         variant: "destructive",
       });
+      setFallChecks([]);
+      setResidents([]);
     } finally {
       setLoading(false);
     }
@@ -269,8 +245,6 @@ export default function Falls() {
 
   const handleEdit = (fallCheck: FallCheck) => {
     setEditingFallCheck(fallCheck);
-    setAgeStr(String(fallCheck.age));
-    setAgeNum(fallCheck.age);
     form.reset({
       resident_id: fallCheck.resident_id,
       age: fallCheck.age,
@@ -307,8 +281,6 @@ export default function Falls() {
 
   const openAddModal = () => {
     setEditingFallCheck(null);
-    setAgeStr('');
-    setAgeNum(undefined);
     form.reset();
     setIsModalOpen(true);
   };
@@ -317,14 +289,10 @@ export default function Falls() {
     try {
       setSubmitting(true);
       
-      // 1. Ensure at least one resident exists
-      const existingResidents = await queryView('v_residents', 'id', { limit: 1 });
-      
-      if (!existingResidents) throw new Error('Failed to check existing residents');
+      const existingResidents = await fetchView('v_residents', 'id', { limit: 1 });
       
       let residentId;
       if (existingResidents.length === 0) {
-        // Create a test resident
         const { data: newResident, error: createError } = await supabase
           .from('residents')
           .insert([{ full_name: 'Alice Smith', room: '101' }])
@@ -342,7 +310,6 @@ export default function Falls() {
         residentId = existingResidents[0].id;
       }
       
-      // 2. Insert a high-risk fall check
       const { error: fallCheckError } = await supabase
         .from('fall_checks')
         .insert([{
@@ -361,7 +328,6 @@ export default function Falls() {
         description: "Test fall check created successfully!",
       });
       
-      // Navigate to alerts to verify
       navigate('/alerts');
       
     } catch (error) {
@@ -542,27 +508,13 @@ export default function Falls() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Resident</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            value={field.value}
-                            disabled={loadingResidents}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={loadingResidents ? "Loading..." : "Select a resident"} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent className="bg-background border z-50">
-                              {residentOptions.map((opt) => (
-                                <SelectItem key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {residentsError && (
-                            <p className="text-sm text-destructive">{residentsError}</p>
-                          )}
+                          <FormControl>
+                            <ResidentSelect
+                              value={field.value}
+                              onChange={field.onChange}
+                              disabled={submitting}
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -575,20 +527,10 @@ export default function Falls() {
                         <FormItem>
                           <FormLabel>Age</FormLabel>
                           <FormControl>
-                            <Input
-                              type="text"
-                              inputMode="numeric"
-                              value={ageStr}
-                              onChange={(e) => {
-                                let v = e.target.value.replace(/[^\d]/g, "");
-                                if (v === "") { setAgeStr(""); setAgeNum(undefined); field.onChange(0); return; }
-                                let n = Math.min(120, parseInt(v, 10));
-                                const clean = Number.isNaN(n) ? "" : String(n);
-                                setAgeStr(clean);
-                                setAgeNum(Number.isNaN(n) ? undefined : n);
-                                field.onChange(Number.isNaN(n) ? 0 : n);
-                              }}
-                              placeholder="0-120"
+                            <AgeInput
+                              value={field.value}
+                              onChange={field.onChange}
+                              disabled={submitting}
                             />
                           </FormControl>
                           <FormMessage />
@@ -710,50 +652,22 @@ export default function Falls() {
 
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium">Date From</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-48 justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateFrom ? format(dateFrom, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar 
-                    mode="single" 
-                    selected={dateFrom} 
-                    onSelect={setDateFrom} 
-                    initialFocus 
-                    className="p-3 pointer-events-auto"
-                    captionLayout="dropdown"
-                    fromYear={2015}
-                    toYear={2035}
-                  />
-                </PopoverContent>
-              </Popover>
+              <DatePickerWithManual
+                value={dateFrom}
+                onChange={setDateFrom}
+                placeholder="Pick start date"
+                disableFuture={true}
+              />
             </div>
 
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium">Date To</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-48 justify-start text-left font-normal", !dateTo && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dateTo ? format(dateTo, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar 
-                    mode="single" 
-                    selected={dateTo} 
-                    onSelect={setDateTo} 
-                    initialFocus 
-                    className="p-3 pointer-events-auto"
-                    captionLayout="dropdown"
-                    fromYear={2015}
-                    toYear={2035}
-                  />
-                </PopoverContent>
-              </Popover>
+              <DatePickerWithManual
+                value={dateTo}
+                onChange={setDateTo}
+                placeholder="Pick end date"
+                disableFuture={true}
+              />
             </div>
           </CardContent>
         </Card>

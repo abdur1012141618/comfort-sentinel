@@ -1,4 +1,4 @@
-import { queryView } from '@/lib/supaFetch';
+import { fetchView } from '@/lib/api';
 import { parseErr } from '@/lib/auth-utils';
 
 export interface ResidentOption {
@@ -8,19 +8,18 @@ export interface ResidentOption {
 
 export async function listResidentsForSelect(): Promise<ResidentOption[]> {
   try {
-    const residents = await queryView<{ id: string; full_name: string; room: string }>(
+    const residents = await fetchView<{ id: string; full_name: string; room: string | null }>(
       'v_residents',
       'id, full_name, room',
       {
         orderBy: { column: 'full_name', ascending: true },
-        limit: 50,
-        timeoutMs: 8000
+        limit: 50
       }
     );
 
     return residents.map(r => ({
       value: r.id,
-      label: `${r.full_name} (${r.room})`
+      label: `${r.full_name} — ${r.room || 'Unknown'}`
     }));
   } catch (err) {
     const errorMsg = parseErr(err);

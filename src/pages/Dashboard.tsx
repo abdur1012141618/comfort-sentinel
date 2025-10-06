@@ -61,15 +61,24 @@ export default function Dashboard() {
   const handleSeedTestData = async () => {
     try {
       setSeeding(true);
-      const { data, error } = await supabase.rpc('seed_test_data');
+      // Use type assertion for seed_demo as it's not in generated types yet
+      const { error } = await (supabase.rpc as any)('seed_demo', { min_rows: 5 });
       
-      if (error) throw error;
-      
-      const result = data as { residents: number; alerts: number; fall_checks: number };
+      if (error) {
+        if (error.message?.includes('function') || error.code === '42883') {
+          toast({
+            title: "RPC Not Found",
+            description: "The seed_demo function is not available. Please check your database setup.",
+            variant: "destructive"
+          });
+          return;
+        }
+        throw error;
+      }
       
       toast({
         title: "Test Data Added",
-        description: `Added ${result.residents} residents, ${result.alerts} alerts, and ${result.fall_checks} fall checks.`,
+        description: "Successfully added test residents and alerts.",
       });
       
       // Refetch all dashboard data

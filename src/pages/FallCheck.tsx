@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,13 +11,16 @@ import { useToast } from '@/hooks/use-toast';
 import { AlertTriangle, CheckCircle, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { z } from 'zod';
+import { AgeInput } from '@/components/AgeInput';
+import { ResidentSelect } from '@/components/ResidentSelect';
 
 const fallCheckSchema = z.object({
   age: z.number().min(0, "Age must be positive").max(120, "Age must be realistic"),
   history: z.string().trim().min(1, "Please describe fall history"),
   gait: z.enum(['normal', 'shuffling', 'unstable', 'slow'], {
     errorMap: () => ({ message: "Please select a gait pattern" })
-  })
+  }),
+  resident_id: z.string().min(1, "Please select a resident")
 });
 
 interface FallCheckResult {
@@ -28,7 +30,7 @@ interface FallCheckResult {
 }
 
 const FallCheck = () => {
-  const [ageStr, setAgeStr] = useState<string>('');
+  const [residentId, setResidentId] = useState<string>('');
   const [age, setAge] = useState<number | undefined>(undefined);
   const [history, setHistory] = useState<string>('');
   const [gait, setGait] = useState<string>('');
@@ -50,6 +52,7 @@ const FallCheck = () => {
 
     try {
       const validatedData = fallCheckSchema.parse({
+        resident_id: residentId,
         age: age,
         history: history.trim(),
         gait: gait as 'normal' | 'shuffling' | 'unstable' | 'slow'
@@ -108,7 +111,7 @@ const FallCheck = () => {
   };
 
   const resetForm = () => {
-    setAgeStr('');
+    setResidentId('');
     setAge(undefined);
     setHistory('');
     setGait('');
@@ -142,22 +145,23 @@ const FallCheck = () => {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
+                  <Label htmlFor="resident">Resident</Label>
+                  <ResidentSelect
+                    value={residentId}
+                    onChange={setResidentId}
+                    disabled={loading}
+                  />
+                  {errors.resident_id && (
+                    <p className="text-sm text-destructive">{errors.resident_id}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="age">Age</Label>
-                  <Input
-                    id="age"
-                    type="text"
-                    inputMode="numeric"
-                    value={ageStr}
-                    onChange={(e) => {
-                      let v = e.target.value.replace(/[^\d]/g, "");
-                      if (v === "") { setAgeStr(""); setAge(undefined); return; }
-                      let n = Math.min(120, parseInt(v, 10));
-                      const clean = Number.isNaN(n) ? "" : String(n);
-                      setAgeStr(clean);
-                      setAge(Number.isNaN(n) ? undefined : n);
-                    }}
-                    placeholder="0-120"
-                    required
+                  <AgeInput
+                    value={age}
+                    onChange={setAge}
+                    disabled={loading}
                     className={errors.age ? "border-destructive" : ""}
                   />
                   {errors.age && (
