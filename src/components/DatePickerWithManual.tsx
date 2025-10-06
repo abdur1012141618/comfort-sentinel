@@ -87,7 +87,7 @@ export function DatePickerWithManual({
             }}
             captionLayout="dropdown"
             fromYear={1900}
-            toYear={2035}
+            toYear={new Date().getFullYear()}
             initialFocus
             className="pointer-events-auto"
           />
