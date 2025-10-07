@@ -1,117 +1,64 @@
-import { useState } from 'react';
-import { Calendar } from '@/components/ui/calendar';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
-import { format, parse, isValid } from 'date-fns';
-import { cn } from '@/lib/utils';
+import * as React from "react";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar"; // shadcn day-picker
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 
-interface DatePickerWithManualProps {
-  value: Date | undefined;
-  onChange: (date: Date | undefined) => void;
-  disabled?: boolean;
-  placeholder?: string;
-  disableFuture?: boolean;
-  disablePast?: boolean;
-}
+type Props = {
+  value?: Date | null;
+  onChange: (d: Date | null) => void;
+  fromYear?: number; // default 1900
+  toYear?: number; // default current year
+};
 
-export function DatePickerWithManual({
-  value,
-  onChange,
-  disabled,
-  placeholder = "Pick a date",
-  disableFuture = false,
-  disablePast = false,
-}: DatePickerWithManualProps) {
-  const [manualInput, setManualInput] = useState('');
-  const [manualError, setManualError] = useState('');
+export function DatePickerWithManual({ value, onChange, fromYear = 1900, toYear = new Date().getFullYear() }: Props) {
+  const [text, setText] = React.useState(value ? format(value, "yyyy-MM-dd") : "");
 
-  const handleManualBlur = () => {
-    if (!manualInput.trim()) {
-      setManualError('');
-      return;
-    }
+  React.useEffect(() => {
+    setText(value ? format(value, "yyyy-MM-dd") : "");
+  }, [value]);
 
-    // Try multiple date formats
-    const formats = ['yyyy-MM-dd', 'dd/MM/yyyy', 'MM/dd/yyyy'];
-    let parsedDate: Date | null = null;
-
-    for (const fmt of formats) {
-      try {
-        const d = parse(manualInput, fmt, new Date());
-        if (isValid(d)) {
-          parsedDate = d;
-          break;
-        }
-      } catch {
-        // Continue to next format
-      }
-    }
-
-    if (parsedDate && isValid(parsedDate)) {
-      onChange(parsedDate);
-      setManualInput('');
-      setManualError('');
-    } else {
-      setManualError('Invalid date');
-    }
+  const commit = (s: string) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+    if (!m) return onChange(null);
+    const [_, y, mo, d] = m;
+    const yr = +y;
+    const dt = new Date(`${y}-${mo}-${d}T00:00:00`);
+    if (!Number.isFinite(dt.getTime())) return onChange(null);
+    if (yr < fromYear || yr > toYear) return onChange(null);
+    onChange(dt);
   };
 
   return (
-    <div className="space-y-2">
+    <div className="flex gap-2 items-center">
       <Popover>
         <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              "w-full justify-start text-left font-normal",
-              !value && "text-muted-foreground"
-            )}
-            disabled={disabled}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {value ? format(value, "PPP") : <span>{placeholder}</span>}
+          <Button variant="outline" className="w-40 justify-start">
+            {value ? format(value, "PPP") : "Pick a date"}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="single"
-            selected={value}
-            onSelect={onChange}
-            disabled={(date) => {
-              if (disableFuture && date > new Date()) return true;
-              if (disablePast && date < new Date()) return true;
-              return date < new Date("1900-01-01");
-            }}
+            selected={value ?? undefined}
+            onSelect={(d) => onChange(d ?? null)}
             captionLayout="dropdown"
-            fromYear={1900}
-            toYear={new Date().getFullYear()}
+            fromYear={fromYear}
+            toYear={toYear}
             initialFocus
-            className="pointer-events-auto"
           />
         </PopoverContent>
       </Popover>
 
-      <div className="space-y-1">
-        <Label className="text-xs text-muted-foreground">Manual (YYYY-MM-DD)</Label>
-        <Input
-          type="text"
-          placeholder="2024-01-15"
-          value={manualInput}
-          onChange={(e) => {
-            setManualInput(e.target.value);
-            setManualError('');
-          }}
-          onBlur={handleManualBlur}
-          disabled={disabled}
-          className={manualError ? 'border-destructive' : ''}
-        />
-        {manualError && (
-          <p className="text-xs text-destructive">{manualError}</p>
-        )}
-      </div>
+      {/* manual input */}
+      <input
+        className="border rounded px-3 py-2 w-40"
+        placeholder="YYYY-MM-DD"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={() => commit(text)}
+        inputMode="numeric"
+      />
     </div>
   );
 }
