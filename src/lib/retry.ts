@@ -1,23 +1,28 @@
-/**
- * withRetry - Retry a promise-returning function up to 2 attempts
- */
 export async function withRetry<T>(
-  fn: () => Promise<T>,
-  maxAttempts: number = 2
+  task: (signal: AbortSignal) => Promise<T>,
+  opts: { retries?: number; timeoutMs?: number; baseDelay?: number } = {},
 ): Promise<T> {
-  let lastError: any;
-  
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+  const retries = opts.retries ?? 2; // মোট 3 চেষ্টা (0,1,2)
+  const timeoutMs = opts.timeoutMs ?? 7000; // Lovable preview < 8s
+  const baseDelay = opts.baseDelay ?? 400;
+
+  let lastErr: any;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort("timeout"), timeoutMs);
+
     try {
-      return await fn();
-    } catch (error) {
-      lastError = error;
-      if (attempt < maxAttempts) {
-        // Wait a bit before retrying (exponential backoff)
-        await new Promise(resolve => setTimeout(resolve, attempt * 500));
-      }
+      const res = await task(ac.signal);
+      clearTimeout(t);
+      return res;
+    } catch (err: any) {
+      clearTimeout(t);
+      lastErr = err;
+      if (attempt === retries) break;
+      // জিটারসহ ব্যাকঅফ
+      const wait = baseDelay * 2 ** attempt + Math.floor(Math.random() * 200);
+      await new Promise((r) => setTimeout(r, wait));
     }
   }
-  
-  throw lastError;
+  throw lastErr;
 }
