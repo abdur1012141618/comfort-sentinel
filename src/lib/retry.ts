@@ -1,27 +1,34 @@
-export async function withRetry<T>(
-  task: (signal: AbortSignal) => Promise<T>,
-  opts: { retries?: number; timeoutMs?: number; baseDelay?: number } = {},
-): Promise<T> {
-  const retries = opts.retries ?? 2; // মোট 3 চেষ্টা (0,1,2)
-  const timeoutMs = opts.timeoutMs ?? 7000; // Lovable preview < 8s
-  const baseDelay = opts.baseDelay ?? 400;
+// src/lib/retry.ts
+type RetryOpts = {
+  retries?: number; // কতবার চেষ্টা করবে
+  timeoutMs?: number; // প্রতি অ্যাটেম্পট টাইমআউট
+  backoffMs?: number; // বেস ব্যাকঅফ (exponential)
+};
 
-  let lastErr: any;
+export async function withRetry<T>(
+  fn: (signal: AbortSignal) => Promise<T>,
+  { retries = 2, timeoutMs = 7000, backoffMs = 600 }: RetryOpts = {},
+): Promise<T> {
+  let lastErr: unknown;
+
   for (let attempt = 0; attempt <= retries; attempt++) {
     const ac = new AbortController();
-    const t = setTimeout(() => ac.abort("timeout"), timeoutMs);
+    const timer = setTimeout(() => ac.abort(), timeoutMs);
 
     try {
-      const res = await task(ac.signal);
-      clearTimeout(t);
+      const res = await fn(ac.signal);
+      clearTimeout(timer);
       return res;
-    } catch (err: any) {
-      clearTimeout(t);
+    } catch (err) {
+      clearTimeout(timer);
       lastErr = err;
-      if (attempt === retries) break;
-      // জিটারসহ ব্যাকঅফ
-      const wait = baseDelay * 2 ** attempt + Math.floor(Math.random() * 200);
-      await new Promise((r) => setTimeout(r, wait));
+
+      // যদি শেষ অ্যাটেম্পট না হয়, একটু backoff
+      if (attempt < retries) {
+        const wait = backoffMs * Math.pow(2, attempt);
+        await new Promise((r) => setTimeout(r, wait));
+        continue;
+      }
     }
   }
   throw lastErr;
