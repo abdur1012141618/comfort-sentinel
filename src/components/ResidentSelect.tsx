@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { fetchView } from '@/lib/api';
+import { getResidents } from '@/api/residents';
 import { parseErr } from '@/lib/auth-utils';
 import { RefreshCw } from 'lucide-react';
 
@@ -28,12 +28,8 @@ export function ResidentSelect({ value, onChange, disabled, placeholder = "Selec
     setError(null);
     
     try {
-      const data = await fetchView<ResidentOption>('v_residents', 'id, full_name, room', {
-        orderBy: { column: 'full_name', ascending: true },
-        limit: 50
-      });
-      
-      setResidents(data);
+      const data = await getResidents();
+      setResidents(data as ResidentOption[]);
     } catch (err) {
       const errorMsg = parseErr(err);
       setError(errorMsg);

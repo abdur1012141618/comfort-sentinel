@@ -31,7 +31,7 @@ interface FallCheckResult {
 
 const FallCheck = () => {
   const [residentId, setResidentId] = useState<string>('');
-  const [age, setAge] = useState<string>('');
+  const [age, setAge] = useState<number | undefined>();
   const [history, setHistory] = useState<string>('');
   const [gait, setGait] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -45,13 +45,12 @@ const FallCheck = () => {
     e.preventDefault();
     setErrors({});
 
-    if (!age || age === '') {
+    if (!age) {
       setErrors({ age: 'Age is required' });
       return;
     }
 
-    const parsedAge = parseInt(age, 10);
-    if (isNaN(parsedAge) || parsedAge < 0 || parsedAge > 120) {
+    if (age < 0 || age > 120) {
       setErrors({ age: 'Age must be between 0 and 120' });
       return;
     }
@@ -59,7 +58,7 @@ const FallCheck = () => {
     try {
       const validatedData = fallCheckSchema.parse({
         resident_id: residentId,
-        age: parsedAge,
+        age: age,
         history: history.trim(),
         gait: gait as 'normal' | 'shuffling' | 'unstable' | 'slow'
       });
@@ -118,7 +117,7 @@ const FallCheck = () => {
 
   const resetForm = () => {
     setResidentId('');
-    setAge('');
+    setAge(undefined);
     setHistory('');
     setGait('');
     setResult(null);
@@ -166,7 +165,7 @@ const FallCheck = () => {
                   <Label htmlFor="age">Age</Label>
                   <AgeInput
                     value={age}
-                    onChange={setAge}
+                    onChange={(v) => setAge(typeof v === 'string' ? parseInt(v) || undefined : v)}
                     disabled={loading}
                     className={errors.age ? "border-destructive" : ""}
                   />

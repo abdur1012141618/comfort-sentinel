@@ -1,9 +1,10 @@
-// imports
 import { useEffect, useState } from "react";
-import { getAlerts, resolveAlert } from "@/lib/api";
-import { toast } from "sonner"; // বা আপনার Toast
+import { getAlerts } from "@/api/alerts";
+import { resolveAlert } from "@/api/alerts";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
-export default function AlertsPage() {
+export default function Alerts() {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,7 +29,6 @@ export default function AlertsPage() {
   const onResolve = async (id: string) => {
     try {
       await resolveAlert(id);
-      // Optimistic UI
       setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: "closed" } : r)));
       toast.success("Alert resolved");
     } catch (e: any) {
@@ -36,6 +36,24 @@ export default function AlertsPage() {
     }
   };
 
-  // ... আপনার UI, যেখানে Resolve বাটন ছিল:
-  // <Button onClick={() => onResolve(row.id)}>Resolve</Button>
+  if (loading) return <div className="p-8">Loading alerts...</div>;
+
+  return (
+    <div className="p-8">
+      <h1 className="text-2xl font-bold mb-4">Alerts</h1>
+      <div className="space-y-2">
+        {rows.map((r) => (
+          <div key={r.id} className="border p-4 rounded flex justify-between items-center">
+            <div>
+              <p className="font-semibold">{r.type}</p>
+              <p className="text-sm text-muted-foreground">Status: {r.status}</p>
+            </div>
+            <Button onClick={() => onResolve(r.id)} disabled={r.status === "closed"}>
+              Resolve
+            </Button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }

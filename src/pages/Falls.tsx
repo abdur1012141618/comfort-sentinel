@@ -24,7 +24,7 @@ import { fetchView } from "@/lib/api";
 import { parseErr } from "@/lib/auth-utils";
 import { ResidentSelect } from "@/components/ResidentSelect";
 import { AgeInput } from "@/components/AgeInput";
-import { DatePickerWithManual } from "@/components/DatePickerWithManual";
+import DatePickerWithManual from "@/components/DatePickerWithManual";
 
 interface Resident {
   id: string;
@@ -129,12 +129,14 @@ export default function Falls() {
     setLoading(true);
     try {
       const [fallChecksData, residentsData] = await Promise.all([
-        fetchView<FallCheck>('v_fall_checks', '*', {
-          orderBy: { column: 'processed_at', ascending: false },
+        fetchView<FallCheck>('v_fall_checks', {
+          select: '*',
+          order: { column: 'processed_at', ascending: false },
           limit: 50
         }),
-        fetchView<Resident>('v_residents', 'id, full_name', {
-          orderBy: { column: 'full_name', ascending: true },
+        fetchView<Resident>('v_residents', {
+          select: 'id, full_name',
+          order: { column: 'full_name', ascending: true },
           limit: 50
         })
       ]);
@@ -299,7 +301,7 @@ export default function Falls() {
     try {
       setSubmitting(true);
       
-      const existingResidents = await fetchView('v_residents', 'id', { limit: 1 });
+      const existingResidents = await fetchView('v_residents', { select: 'id', limit: 1 });
       
       let residentId;
       if (existingResidents.length === 0) {
@@ -665,8 +667,7 @@ export default function Falls() {
               <DatePickerWithManual
                 value={dateFrom}
                 onChange={setDateFrom}
-                placeholder="Pick start date"
-                disableFuture={true}
+                fromYear={1900}
               />
             </div>
 
@@ -675,8 +676,7 @@ export default function Falls() {
               <DatePickerWithManual
                 value={dateTo}
                 onChange={setDateTo}
-                placeholder="Pick end date"
-                disableFuture={true}
+                fromYear={1900}
               />
             </div>
           </CardContent>

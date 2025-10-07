@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { fetchView } from '@/lib/api';
+import { withRetry } from '@/lib/withRetry';
 import { parseErr } from '@/lib/auth-utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -45,10 +46,13 @@ export function useDataLoader<T>({ table, select = '*', limit, orderBy }: UseDat
         console.log(`useDataLoader: Fetching data from ${viewName}...`);
       }
 
-      const result = await fetchView(viewName, select, {
-        limit: limit ?? 50,
-        orderBy: orderBy ?? { column: 'created_at', ascending: false }
-      });
+      const result = await withRetry(() =>
+        fetchView(viewName, {
+          select,
+          limit: limit ?? 50,
+          order: orderBy ?? { column: 'created_at', ascending: false }
+        })
+      );
 
       setData(result ?? []);
 
