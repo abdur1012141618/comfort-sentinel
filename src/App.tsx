@@ -14,8 +14,11 @@ import FallCheck from "./pages/FallCheck";
 import Falls from "./pages/Falls";
 import Alerts from "./pages/Alerts";
 import Residents from "./pages/Residents";
+import Logs from "./pages/Logs";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
+import DashboardLayout from "./components/DashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/hooks/useAuthStore";
 
@@ -51,7 +54,37 @@ const App = () => {
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/dashboard" element={
                   <ProtectedRoute>
-                    <Dashboard />
+                    <DashboardLayout>
+                      <Dashboard />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/residents" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Residents />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/alerts" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Alerts />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/logs" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Logs />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/settings" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Settings />
+                    </DashboardLayout>
                   </ProtectedRoute>
                 } />
                 <Route path="/fall-check" element={
@@ -62,16 +95,6 @@ const App = () => {
                 <Route path="/falls" element={
                   <ProtectedRoute>
                     <Falls />
-                  </ProtectedRoute>
-                } />
-                <Route path="/residents" element={
-                  <ProtectedRoute>
-                    <Residents />
-                  </ProtectedRoute>
-                } />
-                <Route path="/alerts" element={
-                  <ProtectedRoute>
-                    <Alerts />
                   </ProtectedRoute>
                 } />
                 <Route path="*" element={<NotFound />} />

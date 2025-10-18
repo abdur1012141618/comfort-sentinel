@@ -84,8 +84,8 @@ export default function Login() {
       if (error) {
         setError(error.message);
       } else {
-        // Success - redirect to auth callback to handle session setup
-        window.location.href = '/auth/callback';
+        // Success - redirect to dashboard
+        navigate('/dashboard');
       }
     } catch (err) {
       setError('Failed to verify OTP. Please try again.');
