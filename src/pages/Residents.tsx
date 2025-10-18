@@ -1,15 +1,25 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { getResidents } from "@/api/residents";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, ArrowUpDown, AlertTriangle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, ArrowUpDown, Search, AlertTriangle } from "lucide-react";
 import { z } from "zod";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const residentSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
@@ -25,7 +35,7 @@ const residentSchema = z.object({
 
 type Resident = {
   id: string;
-  name: string;
+  name: string; // Corrected from full_name
   age: number | null;
   room: string | null;
   gait: string | null;
@@ -37,7 +47,6 @@ type SortField = "name" | "room" | "age" | "created_at";
 type SortOrder = "asc" | "desc";
 
 export default function Residents() {
-  const { toast } = useToast();
   const [residents, setResidents] = useState<Resident[]>([]);
   const [filteredResidents, setFilteredResidents] = useState<Resident[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,8 +57,9 @@ export default function Residents() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [runningFallCheck, setRunningFallCheck] = useState<string | null>(null);
 
+  // Form state
   const [formData, setFormData] = useState({
-    name: "",
+    name: "", // Corrected from full_name
     age: "",
     room: "",
     gait: "",
@@ -59,15 +69,14 @@ export default function Residents() {
 
   const loadResidents = async () => {
     try {
-      const { data, error } = await supabase.from("residents").select("*").order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setResidents(data || []);
-    } catch (error: any) {
-      console.error("Failed to load residents:", error);
+      setLoading(true);
+      const data = await getResidents();
+      setResidents(data);
+      setFilteredResidents(data);
+    } catch (e: any) {
       toast({
         title: "Error",
-        description: "Failed to load residents",
+        description: e?.message || "Failed to load residents",
         variant: "destructive",
       });
     } finally {
@@ -79,13 +88,14 @@ export default function Residents() {
     loadResidents();
   }, []);
 
+  // Search and sort
   useEffect(() => {
     let result = [...residents];
 
     // Apply search filter
     if (searchQuery) {
       result = result.filter((r) => {
-        const name = r.name || "";
+        const name = r.name || ""; // Corrected from full_name
         const room = r.room || "";
         const query = searchQuery.toLowerCase();
         return name.toLowerCase().includes(query) || room.toLowerCase().includes(query);
@@ -98,8 +108,8 @@ export default function Residents() {
       let bVal: any;
 
       if (sortField === "name") {
-        aVal = (a.name || "").toLowerCase();
-        bVal = (b.name || "").toLowerCase();
+        aVal = (a.name || "").toLowerCase(); // Corrected from full_name
+        bVal = (b.name || "").toLowerCase(); // Corrected from full_name
       } else if (sortField === "room") {
         aVal = (a.room || "").toLowerCase();
         bVal = (b.room || "").toLowerCase();
@@ -129,6 +139,7 @@ export default function Residents() {
   };
 
   const handleRunFallCheck = async (resident: Resident) => {
+    // Check if resident has required data for API call
     if (!resident.age || !resident.gait) {
       toast({
         title: "Missing Data",
@@ -140,7 +151,7 @@ export default function Residents() {
 
     setRunningFallCheck(resident.id);
     try {
-      // Call the Flask API
+      // Call the Heroku Flask API
       const response = await fetch("https://protected-brook-78896.herokuapp.com/api/v1/fall_check", {
         method: "POST",
         headers: {
@@ -158,7 +169,7 @@ export default function Residents() {
 
       const data = await response.json();
 
-      // Log to fall_detection_logs
+      // Log to fall_detection_logs (using any to bypass type restrictions)
       const { error: logError } = await (supabase as any).from("fall_detection_logs").insert({
         resident_id: resident.id,
         input_data: { age: resident.age, gait: resident.gait },
@@ -182,13 +193,13 @@ export default function Residents() {
 
         toast({
           title: "Fall Risk Detected!",
-          description: `High fall risk detected for ${resident.name}. An alert has been created.`,
+          description: `High fall risk detected for ${resident.name}. An alert has been created.`, // Corrected from full_name
           variant: "destructive",
         });
       } else {
         toast({
           title: "Fall Check Complete",
-          description: `No immediate fall risk detected for ${resident.name}.`,
+          description: `No immediate fall risk detected for ${resident.name}.`, // Corrected from full_name
         });
       }
     } catch (error: any) {
@@ -209,7 +220,7 @@ export default function Residents() {
 
     // Prepare data for validation
     const dataToValidate: any = {
-      name: formData.name,
+      name: formData.name, // Corrected from full_name
     };
 
     if (formData.age) {
@@ -236,7 +247,7 @@ export default function Residents() {
     setSaving(true);
     try {
       const { error } = await supabase.from("residents").insert({
-        name: validation.data.name,
+        name: validation.data.name, // Corrected from full_name
         age: validation.data.age ?? null,
         room: validation.data.room ?? null,
         gait: validation.data.gait ?? null,
@@ -252,7 +263,7 @@ export default function Residents() {
       });
 
       // Reset form and close dialog
-      setFormData({ name: "", age: "", room: "", gait: "", notes: "" });
+      setFormData({ name: "", age: "", room: "", gait: "", notes: "" }); // Corrected from full_name
       setDialogOpen(false);
 
       // Reload data
@@ -271,10 +282,16 @@ export default function Residents() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading residents...</p>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-9 w-48" />
+          <Skeleton className="h-10 w-40" />
+        </div>
+        <Skeleton className="h-10 w-full" />
+        <div className="space-y-2">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-16 w-full" />
+          ))}
         </div>
       </div>
     );
@@ -304,11 +321,13 @@ export default function Residents() {
                   <Label htmlFor="name">Name</Label>
                   <Input
                     id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    value={formData.name} // Corrected from full_name
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })} // Corrected from full_name
                     placeholder="Alice Smith"
                   />
-                  {formErrors.name && <p className="text-sm text-red-500">{formErrors.name}</p>}
+                  {formErrors.name && ( // Corrected from full_name
+                    <p className="text-sm text-red-500">{formErrors.name}</p> // Corrected from full_name
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="age">Age</Label>
@@ -408,7 +427,7 @@ export default function Residents() {
           <TableBody>
             {filteredResidents.map((resident) => (
               <TableRow key={resident.id}>
-                <TableCell className="font-medium">{resident.name}</TableCell>
+                <TableCell className="font-medium">{resident.name}</TableCell> {/* Corrected from full_name */}
                 <TableCell>{resident.room}</TableCell>
                 <TableCell>{resident.age}</TableCell>
                 <TableCell>{resident.gait}</TableCell>
@@ -419,7 +438,7 @@ export default function Residents() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleRunFallCheck(resident)}
-                    disabled={runningFallCheck === resident.id}
+                    disabled={runningFallCheck === resident.id || !resident.gait || !resident.age} // Added check for gait and age
                   >
                     {runningFallCheck === resident.id ? (
                       "Running..."
@@ -440,6 +459,8 @@ export default function Residents() {
       {filteredResidents.length === 0 && !loading && (
         <div className="text-center py-10 text-muted-foreground">No residents found.</div>
       )}
+
+      {/* Pagination or other elements can go here */}
     </div>
   );
 }
