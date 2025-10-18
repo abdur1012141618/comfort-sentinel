@@ -17,47 +17,36 @@ export type Database = {
       alerts: {
         Row: {
           created_at: string
-          data: Json
           id: string
-          is_open: boolean
-          org_id: string | null
-          resident_id: string | null
-          resolved_at: string | null
-          severity: string | null
-          source_video_url: string | null
-          status: Database["public"]["Enums"]["alert_status"]
-          timestamp: string
-          type: Database["public"]["Enums"]["alert_type"]
+          org_id: string
+          resident_id: string
+          status: string
+          type: string
         }
         Insert: {
           created_at?: string
-          data?: Json
           id?: string
-          is_open?: boolean
-          org_id?: string | null
-          resident_id?: string | null
-          resolved_at?: string | null
-          severity?: string | null
-          source_video_url?: string | null
-          status?: Database["public"]["Enums"]["alert_status"]
-          timestamp?: string
-          type: Database["public"]["Enums"]["alert_type"]
+          org_id: string
+          resident_id: string
+          status?: string
+          type: string
         }
         Update: {
           created_at?: string
-          data?: Json
           id?: string
-          is_open?: boolean
-          org_id?: string | null
-          resident_id?: string | null
-          resolved_at?: string | null
-          severity?: string | null
-          source_video_url?: string | null
-          status?: Database["public"]["Enums"]["alert_status"]
-          timestamp?: string
-          type?: Database["public"]["Enums"]["alert_type"]
+          org_id?: string
+          resident_id?: string
+          status?: string
+          type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "alerts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "alerts_resident_id_fkey"
             columns: ["resident_id"]
@@ -116,65 +105,145 @@ export type Database = {
         }
         Relationships: []
       }
-      profiles: {
+      fall_detection_logs: {
         Row: {
-          created_at: string | null
+          api_response: Json | null
+          created_at: string
+          fall_detected: boolean | null
           id: string
+          input_data: Json | null
           org_id: string
-          role: string
-          updated_at: string | null
+          resident_id: string | null
         }
         Insert: {
-          created_at?: string | null
-          id: string
-          org_id?: string
-          role?: string
-          updated_at?: string | null
+          api_response?: Json | null
+          created_at?: string
+          fall_detected?: boolean | null
+          id?: string
+          input_data?: Json | null
+          org_id: string
+          resident_id?: string | null
         }
         Update: {
-          created_at?: string | null
+          api_response?: Json | null
+          created_at?: string
+          fall_detected?: boolean | null
           id?: string
+          input_data?: Json | null
           org_id?: string
-          role?: string
-          updated_at?: string | null
+          resident_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fall_detection_logs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fall_detection_logs_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fall_detection_logs_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "v_residents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          full_name: string | null
+          id: string
+          org_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          full_name?: string | null
+          id: string
+          org_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          full_name?: string | null
+          id?: string
+          org_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       residents: {
         Row: {
-          created_at: string | null
-          created_by: string | null
-          dob: string | null
-          full_name: string
-          gender: string | null
+          age: number | null
+          created_at: string
+          gait: string | null
           id: string
+          name: string
           notes: string | null
-          org_id: string | null
+          org_id: string
           room: string | null
         }
         Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          dob?: string | null
-          full_name: string
-          gender?: string | null
+          age?: number | null
+          created_at?: string
+          gait?: string | null
           id?: string
+          name: string
           notes?: string | null
-          org_id?: string | null
+          org_id: string
           room?: string | null
         }
         Update: {
-          created_at?: string | null
-          created_by?: string | null
-          dob?: string | null
-          full_name?: string
-          gender?: string | null
+          age?: number | null
+          created_at?: string
+          gait?: string | null
           id?: string
+          name?: string
           notes?: string | null
-          org_id?: string | null
+          org_id?: string
           room?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "residents_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_consents: {
         Row: {
@@ -224,14 +293,22 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string | null
-          is_open: boolean | null
           org_id: string | null
           resident_id: string | null
+          resident_name: string | null
+          room: string | null
           severity: string | null
-          status: Database["public"]["Enums"]["alert_status"] | null
-          type: Database["public"]["Enums"]["alert_type"] | null
+          status: string | null
+          type: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "alerts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "alerts_resident_id_fkey"
             columns: ["resident_id"]
@@ -252,6 +329,7 @@ export type Database = {
         Row: {
           age: number | null
           confidence: number | null
+          created_at: string | null
           gait: string | null
           history: string | null
           id: string | null
@@ -264,6 +342,7 @@ export type Database = {
         Insert: {
           age?: number | null
           confidence?: number | null
+          created_at?: string | null
           gait?: string | null
           history?: string | null
           id?: string | null
@@ -276,6 +355,7 @@ export type Database = {
         Update: {
           age?: number | null
           confidence?: number | null
+          created_at?: string | null
           gait?: string | null
           history?: string | null
           id?: string | null
@@ -289,18 +369,55 @@ export type Database = {
       }
       v_residents: {
         Row: {
+          age: number | null
           created_at: string | null
           full_name: string | null
+          gait: string | null
           id: string | null
+          name: string | null
           notes: string | null
           org_id: string | null
           room: string | null
         }
-        Relationships: []
+        Insert: {
+          age?: number | null
+          created_at?: string | null
+          full_name?: string | null
+          gait?: string | null
+          id?: string | null
+          name?: string | null
+          notes?: string | null
+          org_id?: string | null
+          room?: string | null
+        }
+        Update: {
+          age?: number | null
+          created_at?: string | null
+          full_name?: string | null
+          gait?: string | null
+          id?: string | null
+          name?: string | null
+          notes?: string | null
+          org_id?: string | null
+          room?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "residents_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
       ack_alert: {
+        Args: { p_alert_id: string }
+        Returns: undefined
+      }
+      alerts_resolve: {
         Args: { p_alert_id: string }
         Returns: undefined
       }
@@ -324,12 +441,20 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_my_org_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       is_staff: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
       resolve_alert: {
-        Args: { p_alert_id: string }
+        Args: { alert_id_to_resolve: string }
+        Returns: undefined
+      }
+      seed_demo: {
+        Args: { min_rows?: number }
         Returns: undefined
       }
       seed_test_data: {
