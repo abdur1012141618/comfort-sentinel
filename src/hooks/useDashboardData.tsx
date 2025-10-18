@@ -50,6 +50,21 @@ interface ResidentsRiskData extends DashboardCard {
   }>;
 }
 
+interface TotalResidentsData extends DashboardCard {
+  count: number;
+}
+
+interface TotalAlertsData extends DashboardCard {
+  count: number;
+}
+
+interface DailyAlertsData extends DashboardCard {
+  chartData: Array<{
+    date: string;
+    count: number;
+  }>;
+}
+
 export function useDashboardData() {
   const [openAlerts, setOpenAlerts] = useState<OpenAlertsData>({
     count: 0,
@@ -88,6 +103,27 @@ export function useDashboardData() {
 
   const [residentsRisk, setResidentsRisk] = useState<ResidentsRiskData>({
     residents: [],
+    loading: true,
+    error: null,
+    retry: () => {}
+  });
+
+  const [totalResidents, setTotalResidents] = useState<TotalResidentsData>({
+    count: 0,
+    loading: true,
+    error: null,
+    retry: () => {}
+  });
+
+  const [totalAlerts, setTotalAlerts] = useState<TotalAlertsData>({
+    count: 0,
+    loading: true,
+    error: null,
+    retry: () => {}
+  });
+
+  const [dailyAlerts, setDailyAlerts] = useState<DailyAlertsData>({
+    chartData: [],
     loading: true,
     error: null,
     retry: () => {}
@@ -231,6 +267,84 @@ export function useDashboardData() {
     }
   };
 
+  const fetchTotalResidents = async () => {
+    try {
+      setTotalResidents(prev => ({ ...prev, loading: true, error: null }));
+      
+      const data = await queryView('v_residents', 'id', {
+        limit: 10000
+      });
+
+      setTotalResidents(prev => ({ ...prev, count: data.length, loading: false }));
+    } catch (error) {
+      const message = parseErr(error);
+      console.error('Dashboard: Failed to fetch total residents:', error);
+      setTotalResidents(prev => ({ ...prev, error: message, loading: false }));
+    }
+  };
+
+  const fetchTotalAlerts = async () => {
+    try {
+      setTotalAlerts(prev => ({ ...prev, loading: true, error: null }));
+      
+      const data = await queryView('v_alerts', 'id', {
+        limit: 10000
+      });
+
+      setTotalAlerts(prev => ({ ...prev, count: data.length, loading: false }));
+    } catch (error) {
+      const message = parseErr(error);
+      console.error('Dashboard: Failed to fetch total alerts:', error);
+      setTotalAlerts(prev => ({ ...prev, error: message, loading: false }));
+    }
+  };
+
+  const fetchDailyAlerts = async () => {
+    try {
+      setDailyAlerts(prev => ({ ...prev, loading: true, error: null }));
+      
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      sevenDaysAgo.setHours(0, 0, 0, 0);
+      
+      const data = await queryView('v_alerts', 'created_at', {
+        filters: [{ column: 'created_at', operator: 'gte', value: sevenDaysAgo.toISOString() }],
+        limit: 10000
+      });
+
+      // Group alerts by day
+      const dailyCounts: Record<string, number> = {};
+      
+      // Initialize all 7 days with 0
+      for (let i = 0; i < 7; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - (6 - i));
+        const dateStr = date.toISOString().split('T')[0];
+        dailyCounts[dateStr] = 0;
+      }
+
+      // Count alerts per day
+      data.forEach((alert: any) => {
+        const dateStr = new Date(alert.created_at).toISOString().split('T')[0];
+        if (dailyCounts.hasOwnProperty(dateStr)) {
+          dailyCounts[dateStr]++;
+        }
+      });
+
+      // Convert to chart data format
+      const chartData = Object.entries(dailyCounts).map(([date, count]) => ({
+        date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        count
+      }));
+
+      setDailyAlerts(prev => ({ ...prev, chartData, loading: false }));
+    } catch (error) {
+      const message = parseErr(error);
+      console.error('Dashboard: Failed to fetch daily alerts:', error);
+      setDailyAlerts(prev => ({ ...prev, error: message, loading: false }));
+    }
+  };
+
   const refetchAll = () => {
     fetchOpenAlerts();
     fetchTodayAlerts();
@@ -238,6 +352,9 @@ export function useDashboardData() {
     fetchRecentAlerts();
     fetchRoomsAttention();
     fetchResidentsRisk();
+    fetchTotalResidents();
+    fetchTotalAlerts();
+    fetchDailyAlerts();
   };
 
   useEffect(() => {
@@ -248,6 +365,9 @@ export function useDashboardData() {
     setRecentAlerts(prev => ({ ...prev, retry: fetchRecentAlerts }));
     setRoomsAttention(prev => ({ ...prev, retry: fetchRoomsAttention }));
     setResidentsRisk(prev => ({ ...prev, retry: fetchResidentsRisk }));
+    setTotalResidents(prev => ({ ...prev, retry: fetchTotalResidents }));
+    setTotalAlerts(prev => ({ ...prev, retry: fetchTotalAlerts }));
+    setDailyAlerts(prev => ({ ...prev, retry: fetchDailyAlerts }));
 
     // Initial fetch
     refetchAll();
@@ -260,6 +380,9 @@ export function useDashboardData() {
     recentAlerts,
     roomsAttention,
     residentsRisk,
+    totalResidents,
+    totalAlerts,
+    dailyAlerts,
     refetchAll
   };
 }

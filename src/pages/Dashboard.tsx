@@ -6,11 +6,13 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ackAlert, resolveAlert } from '@/api/alerts';
 import { useToast } from '@/hooks/use-toast';
-import { AlertTriangle, Clock, Users, TrendingUp, CheckCircle2, XCircle, Database } from 'lucide-react';
+import { AlertTriangle, Clock, Users, TrendingUp, CheckCircle2, XCircle, Database, Activity } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function Dashboard() {
   const { session } = useAuth();
@@ -26,6 +28,9 @@ export default function Dashboard() {
     recentAlerts,
     roomsAttention,
     residentsRisk,
+    totalResidents,
+    totalAlerts,
+    dailyAlerts,
     refetchAll
   } = useDashboardData();
 
@@ -127,7 +132,41 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+          <DashboardCard
+            title="Total Residents"
+            loading={totalResidents.loading}
+            error={totalResidents.error}
+            onRetry={totalResidents.retry}
+          >
+            <div className="flex items-center space-x-2">
+              <Users className="w-8 h-8 text-primary" />
+              <div>
+                <div className="text-2xl font-bold">{totalResidents.count}</div>
+                <p className="text-sm text-muted-foreground">
+                  <Link to="/residents" className="hover:underline">
+                    View all residents →
+                  </Link>
+                </p>
+              </div>
+            </div>
+          </DashboardCard>
+
+          <DashboardCard
+            title="Total Alerts"
+            loading={totalAlerts.loading}
+            error={totalAlerts.error}
+            onRetry={totalAlerts.retry}
+          >
+            <div className="flex items-center space-x-2">
+              <Activity className="w-8 h-8 text-accent" />
+              <div>
+                <div className="text-2xl font-bold">{totalAlerts.count}</div>
+                <p className="text-sm text-muted-foreground">All time</p>
+              </div>
+            </div>
+          </DashboardCard>
+
           <DashboardCard
             title="Open Alerts"
             loading={openAlerts.loading}
@@ -139,8 +178,8 @@ export default function Dashboard() {
               <div>
                 <div className="text-2xl font-bold">{openAlerts.count}</div>
                 <p className="text-sm text-muted-foreground">
-                  <Link to="/alerts?status=open" className="hover:underline">
-                    View all open alerts →
+                  <Link to="/alerts" className="hover:underline">
+                    View open alerts →
                   </Link>
                 </p>
               </div>
@@ -161,25 +200,61 @@ export default function Dashboard() {
               </div>
             </div>
           </DashboardCard>
-
-          <DashboardCard
-            title="Median Ack Time"
-            description="Last 7 days"
-            loading={medianAckTime.loading}
-            error={medianAckTime.error}
-            onRetry={medianAckTime.retry}
-          >
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="w-8 h-8 text-accent" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {medianAckTime.minutes ? `${medianAckTime.minutes}min` : 'N/A'}
-                </div>
-                <p className="text-sm text-muted-foreground">Average response time</p>
-              </div>
-            </div>
-          </DashboardCard>
         </div>
+
+        {/* Chart Section */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Alert Trends</CardTitle>
+            <CardDescription>Daily alert counts over the last 7 days</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {dailyAlerts.loading ? (
+              <div className="h-[300px] flex items-center justify-center">
+                <p className="text-muted-foreground">Loading chart data...</p>
+              </div>
+            ) : dailyAlerts.error ? (
+              <div className="h-[300px] flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-destructive mb-2">{dailyAlerts.error}</p>
+                  <Button variant="outline" size="sm" onClick={dailyAlerts.retry}>
+                    Retry
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={dailyAlerts.chartData}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis 
+                    dataKey="date" 
+                    className="text-xs"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                  />
+                  <YAxis 
+                    className="text-xs"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px'
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="count" 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={2}
+                    dot={{ fill: 'hsl(var(--primary))' }}
+                    name="Alerts"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Tables Grid */}
         <div className="grid gap-6 lg:grid-cols-2 mb-8">
