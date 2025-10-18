@@ -1,7 +1,11 @@
-import { Outlet, NavLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Home, Users, AlertTriangle, FileText, Settings, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect } from "react";
+
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+}
 
 // --- START: Temporary Login Bypass for Testing ---
 // NOTE: This is a temporary measure. Remove this useEffect block
@@ -26,7 +30,7 @@ const navigation = [
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
-export default function DashboardLayout() {
+export default function DashboardLayout({ children }: DashboardLayoutProps) {
   useLoginBypass(); // Activate the login bypass
 
   return (
@@ -71,8 +75,7 @@ export default function DashboardLayout() {
       <main className="flex-1 overflow-y-auto focus:outline-none">
         <div className="py-6">
           <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-            {/* The Outlet renders the content of the nested routes (Dashboard, Residents, etc.) */}
-            <Outlet />
+            {children}
           </div>
         </div>
       </main>
