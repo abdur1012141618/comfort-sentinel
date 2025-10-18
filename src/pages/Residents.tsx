@@ -263,11 +263,12 @@ export default function Residents() {
       const { error } = await supabase
         .from("residents")
         .insert({
-          full_name: validation.data.full_name,
+          name: validation.data.full_name,
           age: validation.data.age ?? null,
           room: validation.data.room ?? null,
           gait: validation.data.gait ?? null,
           notes: validation.data.notes ?? null,
+          org_id: '00000000-0000-0000-0000-000000000001',
         });
 
       if (error) throw error;

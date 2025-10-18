@@ -307,7 +307,7 @@ export default function Falls() {
       if (existingResidents.length === 0) {
         const { data: newResident, error: createError } = await supabase
           .from('residents')
-          .insert([{ full_name: 'Alice Smith', room: '101' }])
+          .insert({ name: 'Alice Smith', room: '101', org_id: '00000000-0000-0000-0000-000000000001' })
           .select()
           .single();
           

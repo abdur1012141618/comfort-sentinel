@@ -5,10 +5,9 @@ import { useToast } from '@/hooks/use-toast';
 
 interface Profile {
   id: string;
-  org_id: string;
-  role: string;
-  created_at: string;
-  updated_at: string;
+  org_id: string | null;
+  full_name?: string | null;
+  updated_at?: string | null;
 }
 
 export const useProfile = (user: User | null) => {
