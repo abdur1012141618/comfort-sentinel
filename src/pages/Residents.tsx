@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, ArrowUpDown, Search } from "lucide-react";
+import { Plus, ArrowUpDown, Search, AlertTriangle } from "lucide-react";
 import { z } from "zod";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -66,6 +66,7 @@ export default function Residents() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [runningFallCheck, setRunningFallCheck] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -145,6 +146,85 @@ export default function Residents() {
     } else {
       setSortField(field);
       setSortOrder("asc");
+    }
+  };
+
+  const handleRunFallCheck = async (resident: Resident) => {
+    if (!resident.age || !resident.gait) {
+      toast({
+        title: "Missing Data",
+        description: "Resident must have age and gait information to run fall check",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setRunningFallCheck(resident.id);
+    try {
+      // Call the Flask API
+      const response = await fetch("https://protected-brook-78896.herokuapp.com/api/v1/fall_check", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          age: resident.age,
+          gait: resident.gait,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Log to fall_detection_logs (using any to bypass type restrictions)
+      const { error: logError } = await (supabase as any)
+        .from("fall_detection_logs")
+        .insert({
+          resident_id: resident.id,
+          input_data: { age: resident.age, gait: resident.gait },
+          api_response: data,
+          fall_detected: data.fall_detected === true,
+        });
+
+      if (logError) {
+        console.error("Failed to log fall check:", logError);
+      }
+
+      // If fall detected, create alert
+      if (data.fall_detected === true) {
+        const { error: alertError } = await (supabase as any)
+          .from("alerts")
+          .insert({
+            resident_id: resident.id,
+            type: "fall",
+            status: "open",
+          });
+
+        if (alertError) throw alertError;
+
+        toast({
+          title: "Fall Risk Detected!",
+          description: `High fall risk detected for ${resident.full_name}. An alert has been created.`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Fall Check Complete",
+          description: `No immediate fall risk detected for ${resident.full_name}.`,
+        });
+      }
+    } catch (error: any) {
+      console.error("Fall check failed:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to run fall check",
+        variant: "destructive",
+      });
+    } finally {
+      setRunningFallCheck(null);
     }
   };
 
@@ -431,12 +511,13 @@ export default function Residents() {
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredResidents.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   {searchQuery ? "No residents found matching your search" : "No residents yet. Add your first resident above."}
                 </TableCell>
               </TableRow>
@@ -456,6 +537,23 @@ export default function Residents() {
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {new Date(resident.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleRunFallCheck(resident)}
+                      disabled={runningFallCheck === resident.id || !resident.age || !resident.gait}
+                    >
+                      {runningFallCheck === resident.id ? (
+                        "Running..."
+                      ) : (
+                        <>
+                          <AlertTriangle className="mr-2 h-4 w-4" />
+                          Fall Check
+                        </>
+                      )}
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
