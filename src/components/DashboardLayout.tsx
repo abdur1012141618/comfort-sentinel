@@ -1,75 +1,81 @@
-import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Users, AlertCircle, FileText, Settings } from "lucide-react";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { Outlet, NavLink } from "react-router-dom";
+import { Home, Users, AlertTriangle, FileText, Settings, LogIn } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 
-// Removed the useAuth hook and related imports for login bypass
+// --- START: Temporary Login Bypass for Testing ---
+// NOTE: This is a temporary measure. Remove this useEffect block
+// and implement proper Supabase Auth when moving to production.
+const useLoginBypass = () => {
+  useEffect(() => {
+    // Simulate a successful login for testing purposes
+    // This is often done by setting a mock session or user state in a real app
+    console.log("Login bypass active: Simulating authenticated user for testing.");
+    // In a real application, you would set a global state or context here.
+    // Since we are just testing the UI and data fetching, a console log is sufficient
+    // to acknowledge the bypass is active.
+  }, []);
+};
+// --- END: Temporary Login Bypass for Testing ---
 
-const navItems = [
-  { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { path: "/residents", label: "Residents", icon: Users },
-  { path: "/alerts", label: "Alerts", icon: AlertCircle },
-  { path: "/logs", label: "Logs", icon: FileText },
-  { path: "/settings", label: "Settings", icon: Settings },
+const navigation = [
+  { name: "Dashboard", href: "/", icon: Home },
+  { name: "Residents", href: "/residents", icon: Users },
+  { name: "Alerts", href: "/alerts", icon: AlertTriangle },
+  { name: "Logs", href: "/logs", icon: FileText },
+  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
-// Replaced AppSidebar with a simpler function that does not rely on authentication
-function AppSidebar() {
+export default function DashboardLayout() {
+  useLoginBypass(); // Activate the login bypass
+
   return (
-    <Sidebar className="w-64">
-      <SidebarGroup>
-        <SidebarGroupLabel className="text-lg font-bold text-[#1E293B] px-4 py-2">Care AI</SidebarGroupLabel>
-      </SidebarGroup>
-      <SidebarGroupContent>
-        {navItems.map((item) => (
-          <SidebarMenuItem key={item.path}>
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <div className="flex flex-col w-64 bg-white border-r border-gray-200">
+        <div className="flex items-center justify-center h-16 border-b border-gray-200">
+          <span className="text-xl font-semibold text-[#1E293B]">CareAI</span>
+        </div>
+        <nav className="flex-grow p-4 space-y-2">
+          {navigation.map((item) => (
             <NavLink
-              to={item.path}
+              key={item.name}
+              to={item.href}
               className={({ isActive }) =>
-                `flex items-center space-x-3 p-2 rounded-lg transition-colors duration-150 text-[#1E293B] hover:bg-accent hover:text-accent-foreground ${
-                  isActive ? "bg-accent font-medium" : ""
-                }`
+                cn(
+                  "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                  isActive
+                    ? "bg-gray-100 text-[#1E293B]" // Active link: light gray background, dark text
+                    : "text-gray-600 hover:bg-gray-50 hover:text-[#1E293B]", // Inactive link: medium gray text, hover to light background and dark text
+                )
               }
             >
-              <item.icon className="icon-class h-5 w-5" />
-              <span>{item.label}</span>
+              <item.icon className="w-5 h-5 mr-3" aria-hidden="true" />
+              {item.name}
             </NavLink>
-          </SidebarMenuItem>
-        ))}
-      </SidebarGroupContent>
-      {/* Removed Sign Out button */}
-    </Sidebar>
-  );
-}
-
-interface DashboardLayoutProps {
-  children: React.ReactNode;
-}
-
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  // Removed the check for isAuthenticated and redirect logic
-
-  return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <AppSidebar />
-        <main className="flex-1 overflow-auto">
-          <header className="flex items-center justify-between border-b bg-card p-4">
-            <SidebarTrigger className="lg:hidden" />
-            <h1 className="text-xl font-semibold">Dashboard</h1>
-          </header>
-          <div className="p-6">{children}</div>
-        </main>
+          ))}
+        </nav>
+        {/* Footer Link for Login/Logout */}
+        <div className="p-4 border-t border-gray-200">
+          <NavLink
+            to="/login"
+            className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-[#1E293B] transition-colors"
+          >
+            <LogIn className="w-5 h-5 mr-3" aria-hidden="true" />
+            Logout (Bypass)
+          </NavLink>
+        </div>
       </div>
-    </SidebarProvider>
+
+      {/* Main Content Area */}
+      <main className="flex-1 overflow-y-auto focus:outline-none">
+        <div className="py-6">
+          <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+            {/* The Outlet renders the content of the nested routes (Dashboard, Residents, etc.) */}
+            <Outlet />
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }
