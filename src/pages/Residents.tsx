@@ -4,29 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Search, ArrowUpDown, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
@@ -35,9 +15,11 @@ const residentSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
   age: z.number().int().min(0, "Age must be 0 or greater").max(120, "Age must be 120 or less").optional(),
   room: z.string().trim().max(50, "Room must be less than 50 characters").optional(),
-  gait: z.enum(["normal", "slow", "shuffling", "unsteady", "steady"], {
-    errorMap: () => ({ message: "Please select a valid gait type" })
-  }).optional(),
+  gait: z
+    .enum(["normal", "slow", "shuffling", "unsteady", "steady"], {
+      errorMap: () => ({ message: "Please select a valid gait type" }),
+    })
+    .optional(),
   notes: z.string().trim().max(500, "Notes must be less than 500 characters").optional(),
 });
 
@@ -77,10 +59,7 @@ export default function Residents() {
 
   const loadResidents = async () => {
     try {
-      const { data, error } = await supabase
-        .from("residents")
-        .select("*")
-        .order("created_at", { ascending: false });
+      const { data, error } = await supabase.from("residents").select("*").order("created_at", { ascending: false });
 
       if (error) throw error;
       setResidents(data || []);
@@ -180,14 +159,12 @@ export default function Residents() {
       const data = await response.json();
 
       // Log to fall_detection_logs
-      const { error: logError } = await (supabase as any)
-        .from("fall_detection_logs")
-        .insert({
-          resident_id: resident.id,
-          input_data: { age: resident.age, gait: resident.gait },
-          api_response: data,
-          fall_detected: data.fall_detected === true,
-        });
+      const { error: logError } = await (supabase as any).from("fall_detection_logs").insert({
+        resident_id: resident.id,
+        input_data: { age: resident.age, gait: resident.gait },
+        api_response: data,
+        fall_detected: data.fall_detected === true,
+      });
 
       if (logError) {
         console.error("Failed to log fall check:", logError);
@@ -195,13 +172,11 @@ export default function Residents() {
 
       // If fall detected, create alert
       if (data.fall_detected === true) {
-        const { error: alertError } = await (supabase as any)
-          .from("alerts")
-          .insert({
-            resident_id: resident.id,
-            type: "fall",
-            status: "open",
-          });
+        const { error: alertError } = await (supabase as any).from("alerts").insert({
+          resident_id: resident.id,
+          type: "fall",
+          status: "open",
+        });
 
         if (alertError) throw alertError;
 
@@ -260,16 +235,14 @@ export default function Residents() {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("residents")
-        .insert({
-          name: validation.data.name,
-          age: validation.data.age ?? null,
-          room: validation.data.room ?? null,
-          gait: validation.data.gait ?? null,
-          notes: validation.data.notes ?? null,
-          org_id: '00000000-0000-0000-0000-000000000001',
-        });
+      const { error } = await supabase.from("residents").insert({
+        name: validation.data.name,
+        age: validation.data.age ?? null,
+        room: validation.data.room ?? null,
+        gait: validation.data.gait ?? null,
+        notes: validation.data.notes ?? null,
+        org_id: "00000000-0000-0000-0000-000000000001",
+      });
 
       if (error) throw error;
 
@@ -312,9 +285,7 @@ export default function Residents() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Residents</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage resident information and records
-          </p>
+          <p className="text-muted-foreground mt-1">Manage resident information and records</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
@@ -337,9 +308,7 @@ export default function Residents() {
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="Alice Smith"
                   />
-                  {formErrors.name && (
-                    <p className="text-sm text-red-500">{formErrors.name}</p>
-                  )}
+                  {formErrors.name && <p className="text-sm text-red-500">{formErrors.name}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="age">Age</Label>
@@ -350,9 +319,7 @@ export default function Residents() {
                     onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                     placeholder="85"
                   />
-                  {formErrors.age && (
-                    <p className="text-sm text-red-500">{formErrors.age}</p>
-                  )}
+                  {formErrors.age && <p className="text-sm text-red-500">{formErrors.age}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="room">Room</Label>
@@ -362,16 +329,11 @@ export default function Residents() {
                     onChange={(e) => setFormData({ ...formData, room: e.target.value })}
                     placeholder="101"
                   />
-                  {formErrors.room && (
-                    <p className="text-sm text-red-500">{formErrors.room}</p>
-                  )}
+                  {formErrors.room && <p className="text-sm text-red-500">{formErrors.room}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="gait">Gait</Label>
-                  <Select
-                    value={formData.gait}
-                    onValueChange={(value) => setFormData({ ...formData, gait: value })}
-                  >
+                  <Select value={formData.gait} onValueChange={(value) => setFormData({ ...formData, gait: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select gait type" />
                     </SelectTrigger>
@@ -383,9 +345,7 @@ export default function Residents() {
                       <SelectItem value="steady">Steady</SelectItem>
                     </SelectContent>
                   </Select>
-                  {formErrors.gait && (
-                    <p className="text-sm text-red-500">{formErrors.gait}</p>
-                  )}
+                  {formErrors.gait && <p className="text-sm text-red-500">{formErrors.gait}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="notes">Notes</Label>
@@ -395,9 +355,7 @@ export default function Residents() {
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     placeholder="Any special medical notes..."
                   />
-                  {formErrors.notes && (
-                    <p className="text-sm text-red-500">{formErrors.notes}</p>
-                  )}
+                  {formErrors.notes && <p className="text-sm text-red-500">{formErrors.notes}</p>}
                 </div>
               </div>
               <DialogFooter>
@@ -426,33 +384,21 @@ export default function Residents() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead
-                className="cursor-pointer"
-                onClick={() => toggleSort("name")}
-              >
+              <TableHead className="cursor-pointer" onClick={() => toggleSort("name")}>
                 Name
                 <ArrowUpDown className="ml-2 h-4 w-4 inline" />
               </TableHead>
-              <TableHead
-                className="cursor-pointer"
-                onClick={() => toggleSort("room")}
-              >
+              <TableHead className="cursor-pointer" onClick={() => toggleSort("room")}>
                 Room
                 <ArrowUpDown className="ml-2 h-4 w-4 inline" />
               </TableHead>
-              <TableHead
-                className="cursor-pointer"
-                onClick={() => toggleSort("age")}
-              >
+              <TableHead className="cursor-pointer" onClick={() => toggleSort("age")}>
                 Age
                 <ArrowUpDown className="ml-2 h-4 w-4 inline" />
               </TableHead>
               <TableHead>Gait</TableHead>
               <TableHead>Notes</TableHead>
-              <TableHead
-                className="cursor-pointer"
-                onClick={() => toggleSort("created_at")}
-              >
+              <TableHead className="cursor-pointer" onClick={() => toggleSort("created_at")}>
                 Added
                 <ArrowUpDown className="ml-2 h-4 w-4 inline" />
               </TableHead>
@@ -467,9 +413,7 @@ export default function Residents() {
                 <TableCell>{resident.age}</TableCell>
                 <TableCell>{resident.gait}</TableCell>
                 <TableCell>{resident.notes}</TableCell>
-                <TableCell>
-                  {new Date(resident.created_at).toLocaleDateString()}
-                </TableCell>
+                <TableCell>{new Date(resident.created_at).toLocaleDateString()}</TableCell>
                 <TableCell className="text-right">
                   <Button
                     variant="outline"
@@ -494,9 +438,7 @@ export default function Residents() {
       </div>
 
       {filteredResidents.length === 0 && !loading && (
-        <div className="text-center py-10 text-muted-foreground">
-          No residents found.
-        </div>
+        <div className="text-center py-10 text-muted-foreground">No residents found.</div>
       )}
     </div>
   );

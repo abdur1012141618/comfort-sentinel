@@ -1,16 +1,10 @@
 import { useEffect, useState } from "react";
 import { getAlerts } from "@/api/alerts";
-import { resolveAlert } from "@/api/alerts";
+// import { resolveAlert } from "@/api/alerts"; // REMOVED: We will use direct supabase call
+import { supabase } from "@/integrations/supabase/client"; // ADDED: Import supabase client
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle, AlertCircle } from "lucide-react";
@@ -47,10 +41,15 @@ export default function Alerts() {
     loadAlerts();
   }, []);
 
+  // MODIFIED: Use direct Supabase call to resolve the alert
   const handleResolve = async (alertId: string) => {
     setResolvingId(alertId);
     try {
-      await resolveAlert(alertId);
+      // Direct Supabase call to update the alert status to 'resolved'
+      const { error } = await supabase.from("alerts").update({ status: "resolved" }).eq("id", alertId);
+
+      if (error) throw error;
+
       // Remove resolved alert from the list since we only show open alerts
       setAlerts((prev) => prev.filter((a) => a.id !== alertId));
       toast.success("Alert resolved successfully");
@@ -88,9 +87,7 @@ export default function Alerts() {
     <div className="container mx-auto p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold mb-2">Open Alerts</h1>
-        <p className="text-muted-foreground">
-          Active alerts requiring attention ({alerts.length} open)
-        </p>
+        <p className="text-muted-foreground">Active alerts requiring attention ({alerts.length} open)</p>
       </div>
 
       <Card>
@@ -99,9 +96,7 @@ export default function Alerts() {
             <AlertCircle className="h-5 w-5 text-destructive" />
             Active Alerts
           </CardTitle>
-          <CardDescription>
-            Alerts that need to be resolved
-          </CardDescription>
+          <CardDescription>Alerts that need to be resolved</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
@@ -128,12 +123,8 @@ export default function Alerts() {
                 ) : (
                   alerts.map((alert) => (
                     <TableRow key={alert.id}>
-                      <TableCell className="font-medium capitalize">
-                        {alert.type}
-                      </TableCell>
-                      <TableCell>
-                        {alert.resident_name || `Resident ${alert.resident_id?.slice(0, 8)}`}
-                      </TableCell>
+                      <TableCell className="font-medium capitalize">{alert.type}</TableCell>
+                      <TableCell>{alert.resident_name || `Resident ${alert.resident_id?.slice(0, 8)}`}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {new Date(alert.created_at).toLocaleString()}
                       </TableCell>
