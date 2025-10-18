@@ -307,12 +307,12 @@ export function useDashboardData() {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       sevenDaysAgo.setHours(0, 0, 0, 0);
       
-      const data = await queryView('v_alerts', 'created_at', {
+      const data = await queryView('fall_detection_logs', 'created_at', {
         filters: [{ column: 'created_at', operator: 'gte', value: sevenDaysAgo.toISOString() }],
         limit: 10000
       });
 
-      // Group alerts by day
+      // Group logs by day
       const dailyCounts: Record<string, number> = {};
       
       // Initialize all 7 days with 0
@@ -323,9 +323,9 @@ export function useDashboardData() {
         dailyCounts[dateStr] = 0;
       }
 
-      // Count alerts per day
-      data.forEach((alert: any) => {
-        const dateStr = new Date(alert.created_at).toISOString().split('T')[0];
+      // Count logs per day
+      data.forEach((log: any) => {
+        const dateStr = new Date(log.created_at).toISOString().split('T')[0];
         if (dailyCounts.hasOwnProperty(dateStr)) {
           dailyCounts[dateStr]++;
         }
