@@ -17,6 +17,6 @@ export async function ackAlert(alertId: string): Promise<void> {
 }
 
 export async function resolveAlert(alertId: string): Promise<void> {
-  const { error } = await supabase.rpc('resolve_alert', { p_alert_id: alertId });
+  const { error } = await supabase.rpc('resolve_alert', { alert_id_to_resolve: alertId });
   if (error) throw error;
 }
