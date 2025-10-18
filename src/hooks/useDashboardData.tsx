@@ -136,7 +136,7 @@ export function useDashboardData() {
       setOpenAlerts(prev => ({ ...prev, loading: true, error: null }));
       
       const data = await queryView('v_alerts', 'id', {
-        filters: [{ column: 'is_open', operator: 'eq', value: true }],
+        filters: [{ column: 'status', operator: 'eq', value: 'open' }],
         limit: 1000
       });
 

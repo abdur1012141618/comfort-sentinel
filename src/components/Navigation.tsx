@@ -24,7 +24,7 @@ export const Navigation = () => {
                 <Button 
                   variant={isActive(item.path) ? "default" : "ghost"} 
                   size="sm"
-                  className={isActive(item.path) ? "bg-primary text-primary-foreground" : ""}
+                  className={isActive(item.path) ? "bg-primary text-primary-foreground" : "text-[#1E293B]"}
                 >
                   {item.label}
                 </Button>
