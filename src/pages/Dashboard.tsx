@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
 import { DashboardCard } from '@/components/DashboardCard';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function Dashboard() {
-  const { session } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -97,12 +95,6 @@ export default function Dashboard() {
       setSeeding(false);
     }
   };
-
-  useEffect(() => {
-    if (!session) {
-      navigate('/login', { replace: true });
-    }
-  }, [session, navigate]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
