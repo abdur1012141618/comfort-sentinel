@@ -123,75 +123,69 @@ export default function Dashboard() {
           </Button>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <DashboardCard
-            title="Total Residents"
-            loading={totalResidents.loading}
-            error={totalResidents.error}
-            onRetry={totalResidents.retry}
-          >
-            <div className="flex items-center space-x-2">
-              <Users className="w-8 h-8 text-primary" />
-              <div>
-                <div className="text-2xl font-bold">{totalResidents.count}</div>
-                <p className="text-sm text-muted-foreground">
-                  <Link to="/residents" className="hover:underline">
-                    View all residents →
-                  </Link>
-                </p>
-              </div>
-            </div>
-          </DashboardCard>
+        {/* Stats Grid - Key Metrics */}
+        <div className="grid gap-6 md:grid-cols-3 mb-8">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-medium">Total Residents</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {totalResidents.loading ? (
+                <div className="text-4xl font-bold text-muted-foreground">...</div>
+              ) : totalResidents.error ? (
+                <div className="text-sm text-destructive">{totalResidents.error}</div>
+              ) : (
+                <div>
+                  <div className="text-5xl font-bold mb-2">{totalResidents.count}</div>
+                  <p className="text-sm text-muted-foreground">
+                    <Link to="/residents" className="hover:underline inline-flex items-center">
+                      View all residents <Users className="ml-1 h-3 w-3" />
+                    </Link>
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-          <DashboardCard
-            title="Total Alerts"
-            loading={totalAlerts.loading}
-            error={totalAlerts.error}
-            onRetry={totalAlerts.retry}
-          >
-            <div className="flex items-center space-x-2">
-              <Activity className="w-8 h-8 text-accent" />
-              <div>
-                <div className="text-2xl font-bold">{totalAlerts.count}</div>
-                <p className="text-sm text-muted-foreground">All time</p>
-              </div>
-            </div>
-          </DashboardCard>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-medium">Total Alerts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {totalAlerts.loading ? (
+                <div className="text-4xl font-bold text-muted-foreground">...</div>
+              ) : totalAlerts.error ? (
+                <div className="text-sm text-destructive">{totalAlerts.error}</div>
+              ) : (
+                <div>
+                  <div className="text-5xl font-bold mb-2">{totalAlerts.count}</div>
+                  <p className="text-sm text-muted-foreground">All time</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-          <DashboardCard
-            title="Open Alerts"
-            loading={openAlerts.loading}
-            error={openAlerts.error}
-            onRetry={openAlerts.retry}
-          >
-            <div className="flex items-center space-x-2">
-              <AlertTriangle className="w-8 h-8 text-destructive" />
-              <div>
-                <div className="text-2xl font-bold">{openAlerts.count}</div>
-                <p className="text-sm text-muted-foreground">
-                  <Link to="/alerts" className="hover:underline">
-                    View open alerts →
-                  </Link>
-                </p>
-              </div>
-            </div>
-          </DashboardCard>
-
-          <DashboardCard
-            title="Today's Alerts"
-            loading={todayAlerts.loading}
-            error={todayAlerts.error}
-            onRetry={todayAlerts.retry}
-          >
-            <div className="flex items-center space-x-2">
-              <Clock className="w-8 h-8 text-primary" />
-              <div>
-                <div className="text-2xl font-bold">{todayAlerts.count}</div>
-                <p className="text-sm text-muted-foreground">Since midnight</p>
-              </div>
-            </div>
-          </DashboardCard>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-medium">Open Alerts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {openAlerts.loading ? (
+                <div className="text-4xl font-bold text-muted-foreground">...</div>
+              ) : openAlerts.error ? (
+                <div className="text-sm text-destructive">{openAlerts.error}</div>
+              ) : (
+                <div>
+                  <div className="text-5xl font-bold mb-2 text-destructive">{openAlerts.count}</div>
+                  <p className="text-sm text-muted-foreground">
+                    <Link to="/alerts" className="hover:underline inline-flex items-center">
+                      View open alerts <AlertTriangle className="ml-1 h-3 w-3" />
+                    </Link>
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Chart Section */}

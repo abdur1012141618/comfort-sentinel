@@ -1,9 +1,6 @@
 import { ReactNode } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, AlertCircle, FileText, Settings, LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { NavLink } from "react-router-dom";
+import { LayoutDashboard, Users, AlertCircle, FileText, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -26,25 +23,6 @@ const navItems = [
 ];
 
 function AppSidebar() {
-  const navigate = useNavigate();
-
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      navigate("/login");
-      toast({
-        title: "Success",
-        description: "Successfully signed out!",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to sign out",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <Sidebar className="w-64">
       <SidebarContent>
@@ -63,7 +41,7 @@ function AppSidebar() {
                       className={({ isActive }) =>
                         isActive
                           ? "bg-primary text-primary-foreground font-medium"
-                          : "hover:bg-accent"
+                          : "hover:bg-accent text-[#1E293B]"
                       }
                     >
                       <item.icon className="h-5 w-5" />
@@ -75,18 +53,6 @@ function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        
-        <div className="mt-auto p-4">
-          <Button
-            onClick={handleSignOut}
-            variant="ghost"
-            className="w-full justify-start"
-            size="sm"
-          >
-            <LogOut className="h-5 w-5" />
-            <span className="ml-2">Sign Out</span>
-          </Button>
-        </div>
       </SidebarContent>
     </Sidebar>
   );
