@@ -26,6 +26,7 @@ export default function Alerts() {
   const loadAlerts = async () => {
     try {
       setLoading(true);
+      // NOTE: getAlerts() is assumed to fetch from the v_alerts view which is fine
       const data = await getAlerts();
       // Filter to only show open alerts
       const openAlerts = data.filter((alert: Alert) => alert.status === "open");
