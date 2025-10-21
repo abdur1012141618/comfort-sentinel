@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { useResidents } from "@/hooks/useResidents";
-import { useProfile } from "@/hooks/useProfile";
-import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,6 +12,7 @@ import { AlertTriangle, Search, Plus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { insertResident } from "@/data/db";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 
 // Define the structure of a Resident object
 interface Resident {
@@ -39,8 +38,6 @@ const residentSchema = z.object({
 
 export default function Residents() {
   const { residents, loading, error, refetch } = useResidents();
-  const { user } = useAuth();
-  const { profile } = useProfile(user);
   const [searchTerm, setSearchTerm] = useState("");
   const [runningFallCheck, setRunningFallCheck] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -52,6 +49,30 @@ export default function Residents() {
     gait: "",
     notes: ""
   });
+  const [orgId, setOrgId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('org_id')
+            .eq('id', user.id)
+            .maybeSingle();
+          
+          if (profile?.org_id) {
+            setOrgId(profile.org_id);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load user profile:", error);
+      }
+    };
+
+    loadUserProfile();
+  }, []);
 
   useEffect(() => {
     if (error) {
@@ -60,7 +81,7 @@ export default function Residents() {
   }, [error]);
 
   const handleAddResident = async () => {
-    if (!profile?.org_id) {
+    if (!orgId) {
       toast.error("Organization not found. Please try logging in again.");
       return;
     }
@@ -83,7 +104,7 @@ export default function Residents() {
         age: validated.age,
         gait: validated.gait,
         notes: validated.notes,
-        org_id: profile.org_id
+        org_id: orgId
       });
 
       toast.success("Resident added successfully");
