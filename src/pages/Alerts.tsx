@@ -51,9 +51,10 @@ export default function Alerts() {
 
       if (error) throw error;
 
-      // Remove resolved alert from the list since we only show open alerts
-      setAlerts((prev) => prev.filter((a) => a.id !== alertId));
       toast.success("Alert resolved successfully");
+      
+      // Refetch alerts from server to ensure data consistency
+      await loadAlerts();
     } catch (e: any) {
       toast.error(e?.message || "Failed to resolve alert");
     } finally {

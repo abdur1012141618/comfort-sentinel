@@ -37,8 +37,8 @@ export default function Dashboard() {
       setLoadingId(id);
       await ackAlert(id);
       toast({ title: "Alert acknowledged", description: "The alert has been marked as acknowledged." });
-      recentAlerts.retry();
-      openAlerts.retry();
+      // Refetch all dashboard data to ensure consistency
+      refetchAll();
     } catch (e: any) {
       toast({ title: "Error", description: e?.message ?? "Failed to acknowledge", variant: "destructive" });
     } finally {
@@ -51,8 +51,8 @@ export default function Dashboard() {
       setLoadingId(id);
       await resolveAlert(id);
       toast({ title: "Alert resolved", description: "The alert has been marked as resolved." });
-      recentAlerts.retry();
-      openAlerts.retry();
+      // Refetch all dashboard data to ensure consistency
+      refetchAll();
     } catch (e: any) {
       toast({ title: "Error", description: e?.message ?? "Failed to resolve", variant: "destructive" });
     } finally {

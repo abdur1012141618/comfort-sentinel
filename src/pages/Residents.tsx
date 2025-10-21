@@ -154,6 +154,9 @@ export default function Residents() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       toast.success(`Fall Check simulated successfully for ${resident.name}.`);
+      
+      // Refetch residents data to reflect any updates from the fall check
+      refetch();
     } catch (e: any) {
       // ORIGINAL ERROR MESSAGE
       // toast.error(e?.message || "Error running fall check");
