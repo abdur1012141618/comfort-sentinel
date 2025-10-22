@@ -24,7 +24,8 @@ import { useProfile } from "@/hooks/useProfile";
 import { z } from "zod";
 
 const profileSchema = z.object({
-  full_name: z.string().trim().min(1, "Name is required").max(100, "Name too long")
+  full_name: z.string().trim().min(1, "Name is required").max(100, "Name too long"),
+  email: z.string().trim().email("Invalid email address")
 });
 
 export default function Settings() {
@@ -33,7 +34,7 @@ export default function Settings() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [formData, setFormData] = useState({ full_name: "" });
+  const [formData, setFormData] = useState({ full_name: "", email: "" });
   const { profile, fetchProfile } = useProfile(user);
   const navigate = useNavigate();
 
@@ -53,10 +54,13 @@ export default function Settings() {
   }, []);
 
   useEffect(() => {
-    if (profile?.full_name) {
-      setFormData({ full_name: profile.full_name });
+    if (user || profile) {
+      setFormData({ 
+        full_name: profile?.full_name || "", 
+        email: user?.email || "" 
+      });
     }
-  }, [profile]);
+  }, [profile, user]);
 
   const handleSaveProfile = async () => {
     if (!user) return;
@@ -65,12 +69,27 @@ export default function Settings() {
     try {
       const validated = profileSchema.parse(formData);
       
-      const { error } = await supabase
+      // Update email if changed
+      if (validated.email !== user.email) {
+        const { error: authError } = await supabase.auth.updateUser({
+          email: validated.email
+        });
+        
+        if (authError) throw authError;
+        
+        toast({
+          title: "Email Update",
+          description: "Please check your new email address for a confirmation link."
+        });
+      }
+      
+      // Update profile full_name
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({ full_name: validated.full_name })
         .eq('id', user.id);
       
-      if (error) throw error;
+      if (profileError) throw profileError;
       
       toast({
         title: "Success",
@@ -81,6 +100,10 @@ export default function Settings() {
       if (fetchProfile) {
         await fetchProfile(user.id);
       }
+      
+      // Refresh user data
+      const { data: { user: updatedUser } } = await supabase.auth.getUser();
+      if (updatedUser) setUser(updatedUser);
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast({
@@ -159,13 +182,16 @@ export default function Settings() {
             <Input
               id="email"
               type="email"
-              value={user?.email || ""}
-              disabled
-              className="bg-muted"
+              value={isEditMode ? formData.email : (user?.email || "")}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              disabled={!isEditMode}
+              className={!isEditMode ? "bg-muted" : ""}
             />
-            <p className="text-xs text-muted-foreground">
-              This is your registered email address
-            </p>
+            {isEditMode && (
+              <p className="text-xs text-muted-foreground">
+                You will receive a confirmation email if you change your address
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="full_name">Full Name</Label>
@@ -236,7 +262,10 @@ export default function Settings() {
                     variant="outline"
                     onClick={() => {
                       setIsEditMode(false);
-                      setFormData({ full_name: profile?.full_name || "" });
+                      setFormData({ 
+                        full_name: profile?.full_name || "", 
+                        email: user?.email || "" 
+                      });
                     }}
                     disabled={isSaving}
                   >

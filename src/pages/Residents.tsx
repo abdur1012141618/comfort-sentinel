@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { insertResident } from "@/data/db";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { AgeInput } from "@/components/AgeInput";
 
 // Define the structure of a Resident object
 interface Resident {
@@ -270,12 +271,10 @@ export default function Residents() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="age">Age</Label>
-                <Input
-                  id="age"
-                  type="number"
-                  placeholder="75"
+                <AgeInput
                   value={formData.age}
-                  onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                  onChange={(v) => setFormData({ ...formData, age: String(v ?? "") })}
+                  className="w-full"
                 />
               </div>
               <div className="grid gap-2">
