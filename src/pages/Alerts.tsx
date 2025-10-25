@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import { getAlerts } from "@/api/alerts";
-// import { resolveAlert } from "@/api/alerts"; // REMOVED: We will use direct supabase call
-import { supabase } from "@/integrations/supabase/client"; // ADDED: Import supabase client
+import { getAlerts, resolveAlert } from "@/api/alerts";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -42,18 +40,11 @@ export default function Alerts() {
     loadAlerts();
   }, []);
 
-  // MODIFIED: Use direct Supabase call to resolve the alert
   const handleResolve = async (alertId: string) => {
     setResolvingId(alertId);
     try {
-      // Direct Supabase call to update the alert status to 'resolved'
-      const { error } = await supabase.from("alerts").update({ status: "resolved" }).eq("id", alertId);
-
-      if (error) throw error;
-
+      await resolveAlert(alertId);
       toast.success("Alert resolved successfully");
-      
-      // Refetch alerts from server to ensure data consistency
       await loadAlerts();
     } catch (e: any) {
       toast.error(e?.message || "Failed to resolve alert");
