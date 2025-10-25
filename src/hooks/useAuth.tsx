@@ -7,7 +7,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -54,16 +55,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, [upsertProfile]);
 
-  const signIn = async (email: string) => {
-    const host = window.location.host;
-    const isPreview = host.endsWith(".lovableproject.com");
-    const publishedBase = "https://comfort-sentinel.lovable.app";
-    const base = isPreview ? publishedBase : window.location.origin;
-    
-    const { error } = await supabase.auth.signInWithOtp({
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
       email,
+      password,
+    });
+    return { error };
+  };
+
+  const signUp = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
       options: {
-        emailRedirectTo: `${base}/auth/callback`
+        emailRedirectTo: `${window.location.origin}/dashboard`
       }
     });
     return { error };
@@ -78,6 +83,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     session,
     loading,
     signIn,
+    signUp,
     signOut,
   };
 

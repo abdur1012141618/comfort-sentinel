@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { AuthProvider } from "@/hooks/useAuth";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import FallCheck from "./pages/FallCheck";
 import Falls from "./pages/Falls";
@@ -11,6 +13,8 @@ import Alerts from "./pages/Alerts";
 import Residents from "./pages/Residents";
 import Logs from "./pages/Logs";
 import Settings from "./pages/Settings";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
 import DashboardLayout from "./components/DashboardLayout";
 
@@ -24,37 +28,59 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={
-                <DashboardLayout>
-                  <Dashboard />
-                </DashboardLayout>
-              } />
-              <Route path="/residents" element={
-                <DashboardLayout>
-                  <Residents />
-                </DashboardLayout>
-              } />
-              <Route path="/alerts" element={
-                <DashboardLayout>
-                  <Alerts />
-                </DashboardLayout>
-              } />
-              <Route path="/logs" element={
-                <DashboardLayout>
-                  <Logs />
-                </DashboardLayout>
-              } />
-              <Route path="/settings" element={
-                <DashboardLayout>
-                  <Settings />
-                </DashboardLayout>
-              } />
-              <Route path="/fall-check" element={<FallCheck />} />
-              <Route path="/falls" element={<Falls />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <AuthProvider>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Dashboard />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/residents" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Residents />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/alerts" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Alerts />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/logs" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Logs />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/settings" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Settings />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/fall-check" element={
+                  <ProtectedRoute>
+                    <FallCheck />
+                  </ProtectedRoute>
+                } />
+                <Route path="/falls" element={
+                  <ProtectedRoute>
+                    <Falls />
+                  </ProtectedRoute>
+                } />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
