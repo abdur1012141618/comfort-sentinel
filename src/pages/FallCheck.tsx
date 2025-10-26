@@ -1,127 +1,86 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { AlertTriangle, CheckCircle, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { z } from 'zod';
-import { AgeInput } from '@/components/AgeInput';
-import { ResidentSelect } from '@/components/ResidentSelect';
 
-const fallCheckSchema = z.object({
-  age: z.number().min(0, "Age must be positive").max(120, "Age must be realistic"),
-  history: z.string().trim().min(1, "Please describe fall history"),
-  gait: z.enum(['normal', 'shuffling', 'unstable', 'slow'], {
-    errorMap: () => ({ message: "Please select a gait pattern" })
-  }),
-  resident_id: z.string().min(1, "Please select a resident")
-});
-
-interface FallCheckResult {
-  is_fall: boolean;
-  confidence: number;
-  processed_at: string;
+interface FallCheckResponse {
+  fall_detected: boolean;
+  prediction_score: number;
 }
 
 const FallCheck = () => {
-  const [residentId, setResidentId] = useState<string>('');
-  const [age, setAge] = useState<number | undefined>();
-  const [history, setHistory] = useState<string>('');
-  const [gait, setGait] = useState<string>('');
+  const [age, setAge] = useState<string>('');
+  const [gaitStabilityScore, setGaitStabilityScore] = useState<string>('');
+  const [confidenceLevel, setConfidenceLevel] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<FallCheckResult | null>(null);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const [result, setResult] = useState<FallCheckResponse | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({});
+    
+    // Validate inputs
+    const ageNum = parseFloat(age);
+    const gaitNum = parseFloat(gaitStabilityScore);
+    const confNum = parseFloat(confidenceLevel);
 
-    if (!age) {
-      setErrors({ age: 'Age is required' });
+    if (!age || isNaN(ageNum) || ageNum < 0 || ageNum > 120) {
+      toast.error('Please enter a valid age (0-120)');
       return;
     }
 
-    if (age < 0 || age > 120) {
-      setErrors({ age: 'Age must be between 0 and 120' });
+    if (!gaitStabilityScore || isNaN(gaitNum) || gaitNum < 0 || gaitNum > 1) {
+      toast.error('Gait stability score must be between 0 and 1');
       return;
     }
 
+    if (!confidenceLevel || isNaN(confNum) || confNum < 0 || confNum > 1) {
+      toast.error('Confidence level must be between 0 and 1');
+      return;
+    }
+
+    setLoading(true);
     try {
-      const validatedData = fallCheckSchema.parse({
-        resident_id: residentId,
-        age: age,
-        history: history.trim(),
-        gait: gait as 'normal' | 'shuffling' | 'unstable' | 'slow'
+      const response = await fetch('/api/v1/fall_check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          age: ageNum,
+          gait_stability_score: gaitNum,
+          confidence_level: confNum,
+        }),
       });
 
-      setLoading(true);
+      if (!response.ok) {
+        throw new Error('Failed to perform fall check');
+      }
 
-      const { data, error } = await supabase.rpc('compute_fall_and_alert', {
-        p_age: validatedData.age,
-        p_history: validatedData.history,
-        p_gait: validatedData.gait
-      });
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        const result = data[0] as FallCheckResult;
-        setResult(result);
-
-        if (result.is_fall) {
-          toast({
-            title: "Alert Created",
-            description: "High fall risk detected - redirecting to dashboard",
-            variant: "destructive",
-          });
-          
-          setTimeout(() => {
-            navigate('/dashboard');
-          }, 2000);
-        } else {
-          toast({
-            title: "Assessment Complete",
-            description: "Fall risk assessment completed successfully",
-          });
-        }
+      const data: FallCheckResponse = await response.json();
+      setResult(data);
+      
+      if (data.fall_detected) {
+        toast.error('Fall Detected: High Risk');
+      } else {
+        toast.success('Fall Detected: Low Risk');
       }
     } catch (error: any) {
-      if (error instanceof z.ZodError) {
-        const newErrors: Record<string, string> = {};
-        error.errors.forEach(err => {
-          if (err.path[0]) {
-            newErrors[err.path[0] as string] = err.message;
-          }
-        });
-        setErrors(newErrors);
-      } else {
-        toast({
-          title: "Error",
-          description: error.message || "Failed to perform fall check",
-          variant: "destructive",
-        });
-      }
+      toast.error(error.message || 'Failed to perform fall check');
     } finally {
       setLoading(false);
     }
   };
 
   const resetForm = () => {
-    setResidentId('');
-    setAge(undefined);
-    setHistory('');
-    setGait('');
+    setAge('');
+    setGaitStabilityScore('');
+    setConfidenceLevel('');
     setResult(null);
-    setErrors({});
   };
 
   return (
@@ -134,7 +93,7 @@ const FallCheck = () => {
               Back
             </Button>
           </Link>
-          <h1 className="text-xl md:text-2xl font-bold">Fall Risk Assessment</h1>
+          <h1 className="text-xl md:text-2xl font-bold">Fall Check</h1>
         </div>
       </header>
 
@@ -142,69 +101,56 @@ const FallCheck = () => {
         <div className="max-w-2xl mx-auto space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Patient Assessment Form</CardTitle>
+              <CardTitle>Fall Risk Check</CardTitle>
               <CardDescription>
-                Complete the form below to assess fall risk
+                Enter the assessment parameters to check fall risk
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="resident">Resident</Label>
-                  <ResidentSelect
-                    value={residentId}
-                    onChange={setResidentId}
-                    disabled={loading}
-                  />
-                  {errors.resident_id && (
-                    <p className="text-sm text-destructive">{errors.resident_id}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="age">Age</Label>
-                  <AgeInput
+                  <Input
+                    id="age"
+                    type="number"
                     value={age}
-                    onChange={(v) => setAge(typeof v === 'string' ? parseInt(v) || undefined : v)}
+                    onChange={(e) => setAge(e.target.value)}
+                    placeholder="Enter age"
                     disabled={loading}
-                    className={errors.age ? "border-destructive" : ""}
+                    min="0"
+                    max="120"
+                    step="1"
                   />
-                  {errors.age && (
-                    <p className="text-sm text-destructive">{errors.age}</p>
-                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="history">Fall History</Label>
-                  <Textarea
-                    id="history"
-                    value={history}
-                    onChange={(e) => setHistory(e.target.value)}
-                    placeholder="Describe any previous falls, injuries, or relevant medical history..."
-                    rows={4}
-                    className={errors.history ? "border-destructive" : ""}
+                  <Label htmlFor="gait">Gait Stability Score (0-1)</Label>
+                  <Input
+                    id="gait"
+                    type="number"
+                    value={gaitStabilityScore}
+                    onChange={(e) => setGaitStabilityScore(e.target.value)}
+                    placeholder="e.g., 0.85"
+                    disabled={loading}
+                    min="0"
+                    max="1"
+                    step="0.01"
                   />
-                  {errors.history && (
-                    <p className="text-sm text-destructive">{errors.history}</p>
-                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="gait">Gait Assessment</Label>
-                  <Select value={gait} onValueChange={setGait} required>
-                    <SelectTrigger className={errors.gait ? "border-destructive" : ""}>
-                      <SelectValue placeholder="Select gait pattern" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background border z-50">
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="shuffling">Shuffling</SelectItem>
-                      <SelectItem value="unstable">Unstable</SelectItem>
-                      <SelectItem value="slow">Slow</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.gait && (
-                    <p className="text-sm text-destructive">{errors.gait}</p>
-                  )}
+                  <Label htmlFor="confidence">Confidence Level (0-1)</Label>
+                  <Input
+                    id="confidence"
+                    type="number"
+                    value={confidenceLevel}
+                    onChange={(e) => setConfidenceLevel(e.target.value)}
+                    placeholder="e.g., 0.92"
+                    disabled={loading}
+                    min="0"
+                    max="1"
+                    step="0.01"
+                  />
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3">
@@ -213,7 +159,7 @@ const FallCheck = () => {
                     disabled={loading}
                     className="flex-1"
                   >
-                    {loading ? 'Assessing...' : 'Perform Assessment'}
+                    {loading ? 'Checking...' : 'Check Fall Risk'}
                   </Button>
                   <Button 
                     type="button" 
@@ -233,7 +179,7 @@ const FallCheck = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  {result.is_fall ? (
+                  {result.fall_detected ? (
                     <AlertTriangle className="h-5 w-5 text-destructive" />
                   ) : (
                     <CheckCircle className="h-5 w-5 text-green-600" />
@@ -242,43 +188,24 @@ const FallCheck = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="text-center">
-                    <div className="text-sm text-muted-foreground mb-1">Fall Risk</div>
+                    <div className="text-sm text-muted-foreground mb-1">Fall Detected</div>
                     <Badge 
-                      variant={result.is_fall ? "destructive" : "secondary"}
+                      variant={result.fall_detected ? "destructive" : "secondary"}
                       className="text-sm"
                     >
-                      {result.is_fall ? "HIGH RISK" : "LOW RISK"}
+                      {result.fall_detected ? "TRUE" : "FALSE"}
                     </Badge>
                   </div>
                   
                   <div className="text-center">
-                    <div className="text-sm text-muted-foreground mb-1">Confidence</div>
+                    <div className="text-sm text-muted-foreground mb-1">Prediction Score</div>
                     <div className="text-lg font-semibold">
-                      {(result.confidence * 100).toFixed(1)}%
-                    </div>
-                  </div>
-                  
-                  <div className="text-center">
-                    <div className="text-sm text-muted-foreground mb-1">Processed At</div>
-                    <div className="text-sm">
-                      {new Date(result.processed_at).toLocaleString()}
+                      {(result.prediction_score * 100).toFixed(1)}%
                     </div>
                   </div>
                 </div>
-
-                {result.is_fall && (
-                  <div className="mt-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-                    <div className="flex items-center gap-2 text-destructive font-medium">
-                      <AlertTriangle className="h-4 w-4" />
-                      Alert Created
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      A high fall risk has been detected. An alert has been created and you will be redirected to the dashboard.
-                    </p>
-                  </div>
-                )}
               </CardContent>
             </Card>
           )}
