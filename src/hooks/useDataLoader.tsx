@@ -13,20 +13,9 @@ interface UseDataLoaderOptions {
   orderBy?: { column: string; ascending?: boolean };
 }
 
-// Map table names to their corresponding authorized views
+// Map table names - now using base tables directly with RLS
 const getViewName = (table: TableName): string => {
-  switch (table) {
-    case 'residents':
-      return 'v_residents';
-    case 'alerts':
-      return 'v_alerts'; 
-    case 'fall_checks':
-      return 'v_fall_checks';
-    case 'profiles':
-      return 'profiles'; // profiles don't need a view
-    default:
-      return table;
-  }
+  return table; // Use base tables directly now that RLS is configured
 };
 
 export function useDataLoader<T>({ table, select = '*', limit, orderBy }: UseDataLoaderOptions) {

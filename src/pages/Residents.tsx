@@ -23,7 +23,7 @@ interface Resident {
   age: number;
   gait: string;
   notes?: string;
-  added_at: string;
+  created_at: string;
 }
 
 // Form validation schema
@@ -353,7 +353,7 @@ export default function Residents() {
                 <TableCell>{resident.age}</TableCell>
                 <TableCell className="capitalize">{resident.gait}</TableCell>
                 <TableCell>{resident.notes || "-"}</TableCell>
-                <TableCell>{new Date(resident.added_at).toLocaleDateString()}</TableCell>
+                <TableCell>{new Date(resident.created_at).toLocaleDateString()}</TableCell>
                 <TableCell className="text-right">
                   <Button
                     size="sm"

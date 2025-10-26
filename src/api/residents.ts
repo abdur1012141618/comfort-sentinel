@@ -9,7 +9,7 @@ export interface ResidentOption {
 
 export async function getResidents() {
   return withRetry(() => 
-    fetchView("v_residents", { 
+    fetchView("residents", { 
       order: { column: "created_at", ascending: false }, 
       limit: 200 
     })
@@ -19,11 +19,11 @@ export async function getResidents() {
 export async function listResidentsForSelect(): Promise<ResidentOption[]> {
   try {
     const residents = await withRetry(() =>
-      fetchView<{ id: string; full_name: string; room: string | null }>(
-        'v_residents',
+      fetchView<{ id: string; name: string; room: string | null }>(
+        'residents',
         {
-          select: 'id, full_name, room',
-          order: { column: 'full_name', ascending: true },
+          select: 'id, name, room',
+          order: { column: 'name', ascending: true },
           limit: 50
         }
       )
@@ -31,7 +31,7 @@ export async function listResidentsForSelect(): Promise<ResidentOption[]> {
 
     return residents.map(r => ({
       value: r.id,
-      label: `${r.full_name} — ${r.room || 'Unknown'}`
+      label: `${r.name} — ${r.room || 'Unknown'}`
     }));
   } catch (err) {
     const errorMsg = parseErr(err);

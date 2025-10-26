@@ -4,7 +4,7 @@ import { supabase } from "@/lib/api";
 
 export async function getAlerts() {
   return withRetry(() => 
-    fetchView("v_alerts", { 
+    fetchView("alerts", { 
       order: { column: "created_at", ascending: false }, 
       limit: 200 
     })

@@ -9,7 +9,7 @@ interface Resident {
   age: number;
   gait: string;
   notes?: string;
-  added_at: string;
+  created_at: string;
 }
 
 export function useResidents() {
