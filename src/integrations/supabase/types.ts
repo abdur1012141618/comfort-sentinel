@@ -413,18 +413,9 @@ export type Database = {
       }
     }
     Functions: {
-      ack_alert: {
-        Args: { p_alert_id: string }
-        Returns: undefined
-      }
-      alerts_resolve: {
-        Args: { p_alert_id: string }
-        Returns: undefined
-      }
-      auth_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      ack_alert: { Args: { p_alert_id: string }; Returns: undefined }
+      alerts_resolve: { Args: { p_alert_id: string }; Returns: undefined }
+      auth_role: { Args: never; Returns: string }
       compute_fall_and_alert: {
         Args: { p_age: number; p_gait: string; p_history: string }
         Returns: {
@@ -433,34 +424,17 @@ export type Database = {
           processed_at: string
         }[]
       }
-      current_org_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      ensure_profile: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_my_org_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      is_staff: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      current_org_id: { Args: never; Returns: string }
+      ensure_profile: { Args: never; Returns: Json }
+      get_my_org_id: { Args: never; Returns: string }
+      get_user_org_id: { Args: never; Returns: string }
+      is_staff: { Args: never; Returns: boolean }
       resolve_alert: {
         Args: { alert_id_to_resolve: string }
         Returns: undefined
       }
-      seed_demo: {
-        Args: { min_rows?: number }
-        Returns: undefined
-      }
-      seed_test_data: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      seed_demo: { Args: { min_rows?: number }; Returns: undefined }
+      seed_test_data: { Args: never; Returns: Json }
     }
     Enums: {
       alert_status: "open" | "ack" | "closed"
