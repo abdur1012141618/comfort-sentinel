@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { fetchView } from "@/lib/api";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { parseErr } from "@/lib/auth-utils";
 
@@ -267,16 +268,35 @@ export function useDashboardData() {
         limit: 5,
       });
 
-      const residents = (data as any[]).map((resident: any) => ({
-        id: resident.id,
-        full_name: resident.name,
-        room: resident.room,
-        age: resident.age,
-        risk_score: Math.floor(Math.random() * 100),
-        last_event: new Date(Date.now() - Math.random() * 86400000).toISOString(),
-      }));
+      // Calculate real-time risk scores for each resident
+      const residentsWithRiskScores = await Promise.all(
+        (data as any[]).map(async (resident: any) => {
+          let riskScore = 0;
+          try {
+            const { data: score, error } = await supabase.rpc('calculate_risk_score', { 
+              p_resident_id: resident.id 
+            });
+            if (error) {
+              console.error('Error calculating risk score for resident:', resident.id, error);
+            } else {
+              riskScore = score || 0;
+            }
+          } catch (err) {
+            console.error('Exception calculating risk score:', err);
+          }
 
-      setResidentsRisk((prev) => ({ ...prev, residents, loading: false }));
+          return {
+            id: resident.id,
+            full_name: resident.name,
+            room: resident.room,
+            age: resident.age,
+            risk_score: riskScore,
+            last_event: new Date(Date.now() - Math.random() * 86400000).toISOString(),
+          };
+        })
+      );
+
+      setResidentsRisk((prev) => ({ ...prev, residents: residentsWithRiskScores, loading: false }));
     } catch (error) {
       const message = parseErr(error);
       console.error("Dashboard: Failed to fetch residents risk:", error);

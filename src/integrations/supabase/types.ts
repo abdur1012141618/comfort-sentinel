@@ -592,6 +592,7 @@ export type Database = {
       ack_alert: { Args: { p_alert_id: string }; Returns: undefined }
       alerts_resolve: { Args: { p_alert_id: string }; Returns: undefined }
       auth_role: { Args: never; Returns: string }
+      calculate_risk_score: { Args: { p_resident_id: string }; Returns: number }
       compute_fall_and_alert: {
         Args: { p_age: number; p_gait: string; p_history: string }
         Returns: {
