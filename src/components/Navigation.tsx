@@ -13,6 +13,7 @@ export const Navigation = () => {
     { path: '/dashboard', label: t('navigation.dashboard') },
     { path: '/residents', label: t('navigation.residents') },
     { path: '/vitals', label: t('navigation.vitals') },
+    { path: '/tasks', label: t('navigation.tasks') },
     { path: '/fall-check', label: t('navigation.fallCheck') },
     { path: '/falls', label: t('navigation.fallChecks') },
     { path: '/alerts', label: t('navigation.alerts') },

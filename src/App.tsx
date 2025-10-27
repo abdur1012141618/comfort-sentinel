@@ -11,6 +11,7 @@ import FallCheck from "./pages/FallCheck";
 import Falls from "./pages/Falls";
 import Alerts from "./pages/Alerts";
 import Residents from "./pages/Residents";
+import Tasks from "./pages/Tasks";
 import Vitals from "./pages/Vitals";
 import Logs from "./pages/Logs";
 import Settings from "./pages/Settings";
@@ -59,6 +60,13 @@ const App = () => {
                   <ProtectedRoute>
                     <DashboardLayout>
                       <Vitals />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/tasks" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Tasks />
                     </DashboardLayout>
                   </ProtectedRoute>
                 } />
