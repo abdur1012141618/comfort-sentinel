@@ -287,6 +287,60 @@ export type Database = {
         }
         Relationships: []
       }
+      vitals: {
+        Row: {
+          blood_pressure_diastolic: number | null
+          blood_pressure_systolic: number | null
+          created_at: string
+          heart_rate: number | null
+          id: string
+          notes: string | null
+          org_id: string
+          resident_id: string
+          spo2: number | null
+          temperature: number | null
+        }
+        Insert: {
+          blood_pressure_diastolic?: number | null
+          blood_pressure_systolic?: number | null
+          created_at?: string
+          heart_rate?: number | null
+          id?: string
+          notes?: string | null
+          org_id: string
+          resident_id: string
+          spo2?: number | null
+          temperature?: number | null
+        }
+        Update: {
+          blood_pressure_diastolic?: number | null
+          blood_pressure_systolic?: number | null
+          created_at?: string
+          heart_rate?: number | null
+          id?: string
+          notes?: string | null
+          org_id?: string
+          resident_id?: string
+          spo2?: number | null
+          temperature?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vitals_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vitals_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "v_residents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       v_alerts: {
