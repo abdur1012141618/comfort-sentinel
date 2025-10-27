@@ -4,6 +4,7 @@
     "residents": "Residents",
     "vitals": "Vitals",
     "tasks": "Tasks",
+    "incidents": "Incidents",
     "fallCheck": "Fall Check",
     "fallChecks": "Fall Checks",
     "alerts": "Alerts",
@@ -160,6 +161,61 @@
     "deleteConfirmTitle": "Are you absolutely sure?",
     "deleteConfirmDesc": "This action cannot be undone. This will permanently delete your account and remove all your data from our servers. You will be signed out immediately."
   },
+  "tasks": {
+    "title": "Tasks",
+    "description": "Manage care tasks and assignments",
+    "createNew": "Create New Task",
+    "description_field": "Description",
+    "resident": "Resident",
+    "assignedTo": "Assigned To",
+    "dueDate": "Due Date",
+    "priority": "Priority",
+    "status": "Status",
+    "created": "Task created successfully",
+    "createdDescription": "The task has been added to the system",
+    "noTasks": "No tasks found",
+    "priorities": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "statuses": {
+      "pending": "Pending",
+      "in_progress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "incidents": {
+    "title": "Incidents",
+    "description": "Track and manage resident incidents and notes",
+    "reportNew": "Report Incident",
+    "report": "Report",
+    "type": "Type",
+    "resident": "Resident",
+    "reportedBy": "Reported By",
+    "details": "Details",
+    "severity": "Severity",
+    "status": "Status",
+    "date": "Date",
+    "open": "Open",
+    "resolved": "Resolved",
+    "created": "Incident reported successfully",
+    "createdDescription": "The incident has been added to the system",
+    "noIncidents": "No incidents found",
+    "types": {
+      "fall": "Fall",
+      "behavioral": "Behavioral",
+      "medical": "Medical",
+      "note": "Note"
+    },
+    "severities": {
+      "minor": "Minor",
+      "moderate": "Moderate",
+      "severe": "Severe"
+    }
+  },
   "common": {
     "loading": "Loading...",
     "error": "Error",
@@ -169,7 +225,8 @@
     "no": "No",
     "true": "TRUE",
     "false": "FALSE",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "saving": "Saving..."
   },
   "vitals": {
     "title": "Vitals Overview",
