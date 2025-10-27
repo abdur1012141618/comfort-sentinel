@@ -394,20 +394,31 @@ export type Database = {
       user_roles: {
         Row: {
           created_at: string | null
+          org_id: string | null
           role: string
           user_id: string
         }
         Insert: {
           created_at?: string | null
+          org_id?: string | null
           role: string
           user_id: string
         }
         Update: {
           created_at?: string | null
+          org_id?: string | null
           role?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vitals: {
         Row: {
@@ -604,6 +615,15 @@ export type Database = {
       current_org_id: { Args: never; Returns: string }
       ensure_profile: { Args: never; Returns: Json }
       get_my_org_id: { Args: never; Returns: string }
+      get_org_users_with_roles: {
+        Args: never
+        Returns: {
+          full_name: string
+          org_id: string
+          role: string
+          user_id: string
+        }[]
+      }
       get_user_org_id: { Args: never; Returns: string }
       is_staff: { Args: never; Returns: boolean }
       resolve_alert: {

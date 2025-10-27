@@ -159,7 +159,22 @@
     "deleteAccount": "Delete Account",
     "processing": "Processing...",
     "deleteConfirmTitle": "Are you absolutely sure?",
-    "deleteConfirmDesc": "This action cannot be undone. This will permanently delete your account and remove all your data from our servers. You will be signed out immediately."
+    "deleteConfirmDesc": "This action cannot be undone. This will permanently delete your account and remove all your data from our servers. You will be signed out immediately.",
+    "roleManagement": "User Role Management",
+    "roleManagementDesc": "Manage user roles and permissions within your organization",
+    "userName": "User Name",
+    "role": "Role",
+    "actions": "Actions",
+    "noName": "No name set",
+    "you": "You",
+    "roleUpdated": "User role updated successfully",
+    "roleUpdateFailed": "Failed to update user role",
+    "roles": {
+      "admin": "Admin",
+      "nurse": "Nurse",
+      "staff": "Staff",
+      "viewer": "Viewer"
+    }
   },
   "tasks": {
     "title": "Tasks",

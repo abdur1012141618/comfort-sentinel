@@ -4,6 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,17 +21,26 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { User } from "@supabase/supabase-js";
-import { Edit, Save, Trash2, X } from "lucide-react";
+import { Edit, Save, Trash2, X, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 
 const profileSchema = z.object({
   full_name: z.string().trim().min(1, "Name is required").max(100, "Name too long"),
   email: z.string().trim().email("Invalid email address")
 });
 
+type OrgUser = {
+  user_id: string;
+  full_name: string | null;
+  role: string;
+  org_id: string;
+};
+
 export default function Settings() {
+  const { t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -37,12 +49,28 @@ export default function Settings() {
   const [formData, setFormData] = useState({ full_name: "", email: "" });
   const { profile, fetchProfile } = useProfile(user);
   const navigate = useNavigate();
+  
+  // Role management state
+  const [orgUsers, setOrgUsers] = useState<OrgUser[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loadingUsers, setLoadingUsers] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         setUser(user);
+        
+        // Check if user is admin
+        if (user) {
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id)
+            .single();
+          
+          setIsAdmin(roleData?.role === 'admin');
+        }
       } catch (error) {
         console.error("Failed to load user:", error);
       } finally {
@@ -52,6 +80,33 @@ export default function Settings() {
 
     loadUser();
   }, []);
+  
+  // Load organization users if admin
+  useEffect(() => {
+    const loadOrgUsers = async () => {
+      if (!isAdmin) return;
+      
+      setLoadingUsers(true);
+      try {
+        const { data, error } = await supabase.rpc('get_org_users_with_roles');
+        
+        if (error) throw error;
+        
+        setOrgUsers(data || []);
+      } catch (error) {
+        console.error("Failed to load org users:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load organization users",
+          variant: "destructive"
+        });
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+    
+    loadOrgUsers();
+  }, [isAdmin]);
 
   useEffect(() => {
     if (user || profile) {
@@ -146,6 +201,57 @@ export default function Settings() {
       });
     } finally {
       setIsDeleting(false);
+    }
+  };
+  
+  const handleRoleChange = async (userId: string, newRole: string) => {
+    try {
+      const userToUpdate = orgUsers.find(u => u.user_id === userId);
+      if (!userToUpdate) return;
+      
+      // Check if role already exists
+      const { data: existingRole } = await supabase
+        .from('user_roles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+      
+      if (existingRole) {
+        // Update existing role
+        const { error } = await supabase
+          .from('user_roles')
+          .update({ role: newRole })
+          .eq('user_id', userId);
+        
+        if (error) throw error;
+      } else {
+        // Insert new role
+        const { error } = await supabase
+          .from('user_roles')
+          .insert({ 
+            user_id: userId, 
+            role: newRole,
+            org_id: userToUpdate.org_id 
+          });
+        
+        if (error) throw error;
+      }
+      
+      // Update local state
+      setOrgUsers(orgUsers.map(u => 
+        u.user_id === userId ? { ...u, role: newRole } : u
+      ));
+      
+      toast({
+        title: t('common.success'),
+        description: t('settings.roleUpdated')
+      });
+    } catch (error: any) {
+      toast({
+        title: t('common.error'),
+        description: error.message || t('settings.roleUpdateFailed'),
+        variant: "destructive"
+      });
     }
   };
 
@@ -310,6 +416,79 @@ export default function Settings() {
           </div>
         </CardContent>
       </Card>
+
+      {isAdmin && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              <CardTitle>{t('settings.roleManagement')}</CardTitle>
+            </div>
+            <CardDescription>
+              {t('settings.roleManagementDesc')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loadingUsers ? (
+              <div className="text-center py-8">{t('common.loading')}</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('settings.userName')}</TableHead>
+                    <TableHead>{t('settings.userId')}</TableHead>
+                    <TableHead>{t('settings.role')}</TableHead>
+                    <TableHead>{t('settings.actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {orgUsers.map((orgUser) => (
+                    <TableRow key={orgUser.user_id}>
+                      <TableCell className="font-medium">
+                        {orgUser.full_name || t('settings.noName')}
+                        {orgUser.user_id === user?.id && (
+                          <Badge variant="outline" className="ml-2">
+                            {t('settings.you')}
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {orgUser.user_id.substring(0, 8)}...
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={
+                          orgUser.role === 'admin' ? 'default' : 
+                          orgUser.role === 'nurse' ? 'secondary' : 
+                          'outline'
+                        }>
+                          {orgUser.role}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={orgUser.role}
+                          onValueChange={(value) => handleRoleChange(orgUser.user_id, value)}
+                          disabled={orgUser.user_id === user?.id}
+                        >
+                          <SelectTrigger className="w-[140px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="admin">{t('settings.roles.admin')}</SelectItem>
+                            <SelectItem value="nurse">{t('settings.roles.nurse')}</SelectItem>
+                            <SelectItem value="staff">{t('settings.roles.staff')}</SelectItem>
+                            <SelectItem value="viewer">{t('settings.roles.viewer')}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
