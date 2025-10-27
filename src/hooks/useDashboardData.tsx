@@ -198,8 +198,8 @@ export function useDashboardData() {
     try {
       setRecentAlerts((prev) => ({ ...prev, loading: true, error: null }));
 
-      // Fetch the 10 most recent alerts from base table
-      const data = await fetchView("alerts", {
+      // Fetch the 10 most recent alerts from v_alerts view (which has severity)
+      const data = await fetchView("v_alerts", {
         select: "id, created_at, type, severity, status, resident_id",
         order: { column: "created_at", ascending: false },
         limit: 10,
