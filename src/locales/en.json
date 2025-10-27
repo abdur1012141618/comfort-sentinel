@@ -2,6 +2,7 @@
   "navigation": {
     "dashboard": "Dashboard",
     "residents": "Residents",
+    "vitals": "Vitals",
     "fallCheck": "Fall Check",
     "fallChecks": "Fall Checks",
     "alerts": "Alerts",
@@ -166,6 +167,24 @@
     "yes": "Yes",
     "no": "No",
     "true": "TRUE",
-    "false": "FALSE"
+    "false": "FALSE",
+    "refresh": "Refresh"
+  },
+  "vitals": {
+    "title": "Vitals Overview",
+    "subtitle": "Monitor resident vital signs",
+    "totalRecords": "Total Records",
+    "avgHeartRate": "Avg Heart Rate",
+    "avgTemp": "Avg Temperature",
+    "avgSpO2": "Avg SpO2",
+    "recentVitals": "Recent Vital Signs",
+    "recentVitalsDesc": "Latest vital measurements for all residents",
+    "residentName": "Resident Name",
+    "heartRate": "Heart Rate (bpm)",
+    "temperature": "Temperature (°C)",
+    "bloodPressure": "Blood Pressure (mmHg)",
+    "spO2": "SpO2 (%)",
+    "recordedAt": "Recorded At",
+    "noData": "No vital signs data available"
   }
 }
