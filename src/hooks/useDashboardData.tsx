@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { queryView } from "@/lib/supaFetch";
+import { fetchView } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { parseErr } from "@/lib/auth-utils";
 
@@ -140,8 +140,8 @@ export function useDashboardData() {
       setOpenAlerts((prev) => ({ ...prev, loading: true, error: null }));
 
       // Fetch all open alerts from base table
-      const data = await queryView("alerts", "id", {
-        filters: [{ column: "status", operator: "eq", value: "open" }],
+      const data = await fetchView("alerts", {
+        eq: { status: "open" },
         limit: 1000,
       });
 
@@ -165,13 +165,16 @@ export function useDashboardData() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      // Fetch all today's alerts from base table
-      const data = await queryView("alerts", "id", {
-        filters: [{ column: "created_at", operator: "gte", value: today.toISOString() }],
+      // Fetch all alerts and filter in memory for today
+      const data = await fetchView("alerts", {
         limit: 1000,
       });
 
-      setTodayAlerts((prev) => ({ ...prev, count: data.length, loading: false }));
+      const todayCount = data.filter((alert: any) => 
+        new Date(alert.created_at) >= today
+      ).length;
+
+      setTodayAlerts((prev) => ({ ...prev, count: todayCount, loading: false }));
     } catch (error) {
       const message = parseErr(error);
       console.error("Dashboard: Failed to fetch today alerts:", error);
@@ -195,33 +198,11 @@ export function useDashboardData() {
       setRecentAlerts((prev) => ({ ...prev, loading: true, error: null }));
 
       // Fetch the 10 most recent alerts from base table
-      const data = await queryView("alerts", "id, created_at, type, severity, status, resident_id", {
-        orderBy: { column: "created_at", ascending: false },
+      const data = await fetchView("alerts", {
+        select: "id, created_at, type, severity, status, resident_id",
+        order: { column: "created_at", ascending: false },
         limit: 10,
       });
-
-      // Added a check for empty data to provide mock data if needed for visualization
-      const alerts =
-        data && data.length > 0
-          ? data
-          : [
-              {
-                id: "mock-1",
-                created_at: new Date().toISOString(),
-                type: "Fall Detected",
-                severity: "high",
-                status: "open",
-                resident_id: "res-1",
-              },
-              {
-                id: "mock-2",
-                created_at: new Date(Date.now() - 3600000).toISOString(),
-                type: "Heart Rate Low",
-                severity: "medium",
-                status: "resolved",
-                resident_id: "res-2",
-              },
-            ];
 
       setRecentAlerts((prev) => ({ ...prev, alerts: data, loading: false }));
     } catch (error) {
@@ -241,23 +222,26 @@ export function useDashboardData() {
       setRoomsAttention((prev) => ({ ...prev, loading: true, error: null }));
 
       // Fetch residents to group by room from base table
-      const data = await queryView("residents", "room", {
-        filters: [{ column: "room", operator: "neq", value: null }],
-        limit: 5,
+      const data = await fetchView("residents", {
+        select: "room",
+        limit: 100,
       });
 
-      // Use actual data if available, otherwise use mock data for visualization
-      const rooms =
-        data && data.length > 0
-          ? (data as any[]).map((resident: any, index: number) => ({
-              room: resident.room || `Room ${index + 1}`,
-              event_count: Math.floor(Math.random() * 10) + 1,
-              last_event: new Date(Date.now() - Math.random() * 86400000).toISOString(),
-            }))
-          : [
-              { room: "101", event_count: 5, last_event: new Date(Date.now() - 3600000).toISOString() },
-              { room: "105", event_count: 3, last_event: new Date(Date.now() - 7200000).toISOString() },
-            ];
+      // Filter residents with rooms and count by room
+      const roomMap = new Map<string, number>();
+      data.forEach((resident: any) => {
+        if (resident.room) {
+          roomMap.set(resident.room, (roomMap.get(resident.room) || 0) + 1);
+        }
+      });
+
+      const rooms = Array.from(roomMap.entries())
+        .slice(0, 5)
+        .map(([room, count]) => ({
+          room,
+          event_count: count,
+          last_event: new Date(Date.now() - Math.random() * 86400000).toISOString(),
+        }));
 
       setRoomsAttention((prev) => ({ ...prev, rooms, loading: false }));
     } catch (error) {
@@ -277,36 +261,18 @@ export function useDashboardData() {
       setResidentsRisk((prev) => ({ ...prev, loading: true, error: null }));
 
       // Fetch residents from base table
-      const data = await queryView("residents", "id, name, room", {
+      const data = await fetchView("residents", {
+        select: "id, name, room",
         limit: 5,
       });
 
-      // Use actual data if available, otherwise use mock data for visualization
-      const residents =
-        data && data.length > 0
-          ? (data as any[]).map((resident: any) => ({
-              id: resident.id,
-              full_name: resident.name,
-              room: resident.room,
-              risk_score: Math.floor(Math.random() * 100),
-              last_event: new Date(Date.now() - Math.random() * 86400000).toISOString(),
-            }))
-          : [
-              {
-                id: "mock-1",
-                full_name: "Alice Johnson",
-                room: "102",
-                risk_score: 85,
-                last_event: new Date(Date.now() - 1800000).toISOString(),
-              },
-              {
-                id: "mock-2",
-                full_name: "Bob Williams",
-                room: "103",
-                risk_score: 40,
-                last_event: new Date(Date.now() - 5400000).toISOString(),
-              },
-            ];
+      const residents = (data as any[]).map((resident: any) => ({
+        id: resident.id,
+        full_name: resident.name,
+        room: resident.room,
+        risk_score: Math.floor(Math.random() * 100),
+        last_event: new Date(Date.now() - Math.random() * 86400000).toISOString(),
+      }));
 
       setResidentsRisk((prev) => ({ ...prev, residents, loading: false }));
     } catch (error) {
@@ -326,7 +292,8 @@ export function useDashboardData() {
       setTotalResidents((prev) => ({ ...prev, loading: true, error: null }));
 
       // Fetch total count of residents from base table
-      const data = await queryView("residents", "id", {
+      const data = await fetchView("residents", {
+        select: "id",
         limit: 10000,
       });
 
@@ -348,7 +315,8 @@ export function useDashboardData() {
       setTotalAlerts((prev) => ({ ...prev, loading: true, error: null }));
 
       // Fetch total count of alerts from base table
-      const data = await queryView("alerts", "id", {
+      const data = await fetchView("alerts", {
+        select: "id",
         limit: 10000,
       });
 
@@ -373,13 +341,18 @@ export function useDashboardData() {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       sevenDaysAgo.setHours(0, 0, 0, 0);
 
-      // Fetch all fall detection logs
-      const data = await queryView("fall_detection_logs", "created_at", {
-        filters: [{ column: "created_at", operator: "gte", value: sevenDaysAgo.toISOString() }],
+      // Fetch all alerts and filter in memory
+      const data = await fetchView("alerts", {
+        select: "created_at",
         limit: 10000,
       });
 
-      // Group logs by day (No change in this logic)
+      // Filter to last 7 days
+      const recentData = data.filter((alert: any) => 
+        new Date(alert.created_at) >= sevenDaysAgo
+      );
+
+      // Group by day
       const dailyCounts: Record<string, number> = {};
 
       // Initialize all 7 days with 0
@@ -390,9 +363,9 @@ export function useDashboardData() {
         dailyCounts[dateStr] = 0;
       }
 
-      // Count logs per day
-      data.forEach((log: any) => {
-        const dateStr = new Date(log.created_at).toISOString().split("T")[0];
+      // Count alerts per day
+      recentData.forEach((alert: any) => {
+        const dateStr = new Date(alert.created_at).toISOString().split("T")[0];
         if (dailyCounts.hasOwnProperty(dateStr)) {
           dailyCounts[dateStr]++;
         }
