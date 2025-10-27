@@ -139,8 +139,8 @@ export function useDashboardData() {
     try {
       setOpenAlerts((prev) => ({ ...prev, loading: true, error: null }));
 
-      // Fetch all open alerts (RLS removed, so this should work)
-      const data = await queryView("v_alerts", "id", {
+      // Fetch all open alerts from base table
+      const data = await queryView("alerts", "id", {
         filters: [{ column: "status", operator: "eq", value: "open" }],
         limit: 1000,
       });
@@ -165,8 +165,8 @@ export function useDashboardData() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      // Fetch all today's alerts
-      const data = await queryView("v_alerts", "id", {
+      // Fetch all today's alerts from base table
+      const data = await queryView("alerts", "id", {
         filters: [{ column: "created_at", operator: "gte", value: today.toISOString() }],
         limit: 1000,
       });
@@ -194,8 +194,8 @@ export function useDashboardData() {
     try {
       setRecentAlerts((prev) => ({ ...prev, loading: true, error: null }));
 
-      // Fetch the 10 most recent alerts
-      const data = await queryView("v_alerts", "id, created_at, type, severity, status, resident_id", {
+      // Fetch the 10 most recent alerts from base table
+      const data = await queryView("alerts", "id, created_at, type, severity, status, resident_id", {
         orderBy: { column: "created_at", ascending: false },
         limit: 10,
       });
@@ -240,8 +240,8 @@ export function useDashboardData() {
     try {
       setRoomsAttention((prev) => ({ ...prev, loading: true, error: null }));
 
-      // Fetch residents to group by room
-      const data = await queryView("v_residents", "room", {
+      // Fetch residents to group by room from base table
+      const data = await queryView("residents", "room", {
         filters: [{ column: "room", operator: "neq", value: null }],
         limit: 5,
       });
@@ -276,8 +276,8 @@ export function useDashboardData() {
     try {
       setResidentsRisk((prev) => ({ ...prev, loading: true, error: null }));
 
-      // Fetch residents
-      const data = await queryView("v_residents", "id, full_name, room", {
+      // Fetch residents from base table
+      const data = await queryView("residents", "id, name, room", {
         limit: 5,
       });
 
@@ -285,7 +285,9 @@ export function useDashboardData() {
       const residents =
         data && data.length > 0
           ? (data as any[]).map((resident: any) => ({
-              ...resident,
+              id: resident.id,
+              full_name: resident.name,
+              room: resident.room,
               risk_score: Math.floor(Math.random() * 100),
               last_event: new Date(Date.now() - Math.random() * 86400000).toISOString(),
             }))
@@ -323,8 +325,8 @@ export function useDashboardData() {
     try {
       setTotalResidents((prev) => ({ ...prev, loading: true, error: null }));
 
-      // Fetch total count of residents
-      const data = await queryView("v_residents", "id", {
+      // Fetch total count of residents from base table
+      const data = await queryView("residents", "id", {
         limit: 10000,
       });
 
@@ -345,8 +347,8 @@ export function useDashboardData() {
     try {
       setTotalAlerts((prev) => ({ ...prev, loading: true, error: null }));
 
-      // Fetch total count of alerts
-      const data = await queryView("v_alerts", "id", {
+      // Fetch total count of alerts from base table
+      const data = await queryView("alerts", "id", {
         limit: 10000,
       });
 
