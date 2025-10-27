@@ -46,6 +46,7 @@ interface ResidentsRiskData extends DashboardCard {
     id: string;
     full_name: string;
     room: string | null;
+    age: number | null;
     risk_score: number;
     last_event: string;
   }>;
@@ -262,7 +263,7 @@ export function useDashboardData() {
 
       // Fetch residents from base table
       const data = await fetchView("residents", {
-        select: "id, name, room",
+        select: "id, name, room, age",
         limit: 5,
       });
 
@@ -270,6 +271,7 @@ export function useDashboardData() {
         id: resident.id,
         full_name: resident.name,
         room: resident.room,
+        age: resident.age,
         risk_score: Math.floor(Math.random() * 100),
         last_event: new Date(Date.now() - Math.random() * 86400000).toISOString(),
       }));

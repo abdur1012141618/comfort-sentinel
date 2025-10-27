@@ -65,6 +65,14 @@ export default {
           urgent: "hsl(var(--vitals-urgent))",
           "urgent-foreground": "hsl(var(--vitals-urgent-foreground))",
         },
+        status: {
+          stable: "hsl(var(--status-stable))",
+          "stable-foreground": "hsl(var(--status-stable-foreground))",
+          attention: "hsl(var(--status-attention))",
+          "attention-foreground": "hsl(var(--status-attention-foreground))",
+          critical: "hsl(var(--status-critical))",
+          "critical-foreground": "hsl(var(--status-critical-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

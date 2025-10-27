@@ -483,33 +483,73 @@ export default function Dashboard() {
           </DashboardCard>
         </div>
 
-      {/* Bottom Section */}
-      <DashboardCard
-          title={t('dashboard.residentsRisk')}
-          description={t('dashboard.residentsRiskDesc')}
-          loading={residentsRisk.loading}
-          error={residentsRisk.error}
-          onRetry={residentsRisk.retry}
-        >
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {residentsRisk.residents.map((resident) => (
-              <div key={resident.id} className="p-4 border rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium">{resident.full_name}</h4>
-                  <Badge variant={resident.risk_score >= 70 ? 'destructive' : 'default'}>
-                    {resident.risk_score}% {t('dashboard.risk')}
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mb-1">
-                  {t('dashboard.room')}: {resident.room || 'N/A'}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {t('dashboard.lastEvent')}: {formatDate(resident.last_event)}
-                </p>
-              </div>
-            ))}
-          </div>
-        </DashboardCard>
+      {/* Patient List Section */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>Patient List</CardTitle>
+          <CardDescription>Overview of all residents and their current status</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {residentsRisk.loading ? (
+            <div className="flex items-center justify-center py-8">
+              <p className="text-muted-foreground">Loading patients...</p>
+            </div>
+          ) : residentsRisk.error ? (
+            <div className="text-center py-8">
+              <p className="text-destructive mb-2">{residentsRisk.error}</p>
+              <Button variant="outline" size="sm" onClick={residentsRisk.retry}>
+                Retry
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {residentsRisk.residents.map((resident) => {
+                const status = resident.risk_score >= 70 ? 'critical' : resident.risk_score >= 40 ? 'attention' : 'stable';
+                const statusColor = status === 'critical' ? 'bg-status-critical text-status-critical-foreground' : 
+                                   status === 'attention' ? 'bg-status-attention text-status-attention-foreground' : 
+                                   'bg-status-stable text-status-stable-foreground';
+                
+                return (
+                  <Card key={resident.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg">{resident.full_name}</CardTitle>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Age: {resident.age || 'N/A'} • Room: {resident.room || 'N/A'}
+                          </p>
+                        </div>
+                        <Badge className={statusColor}>
+                          {status}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2 mb-4">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Risk Score:</span>
+                          <span className="font-medium">{resident.risk_score}%</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Last Event:</span>
+                          <span className="font-medium">{formatDate(resident.last_event).split(',')[0]}</span>
+                        </div>
+                      </div>
+                      <Button 
+                        className="w-full" 
+                        variant="outline"
+                        onClick={() => navigate(`/residents`)}
+                      >
+                        View Details
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </>
   );
 }

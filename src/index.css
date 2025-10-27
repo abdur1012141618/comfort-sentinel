@@ -55,12 +55,19 @@ All colors MUST be HSL.
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Vitals Status Colors */
-    --vitals-normal: 217 91% 60%;
+    --vitals-normal: 142 71% 45%;
     --vitals-normal-foreground: 0 0% 100%;
     --vitals-warning: 38 92% 50%;
     --vitals-warning-foreground: 0 0% 100%;
     --vitals-urgent: 0 84% 60%;
     --vitals-urgent-foreground: 0 0% 100%;
+    
+    --status-stable: 142 71% 45%;
+    --status-stable-foreground: 0 0% 100%;
+    --status-attention: 38 92% 50%;
+    --status-attention-foreground: 0 0% 100%;
+    --status-critical: 0 84% 60%;
+    --status-critical-foreground: 0 0% 100%;
   }
 
   .dark {
@@ -91,6 +98,21 @@ All colors MUST be HSL.
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+    
+    --vitals-normal: 142 71% 45%;
+    --vitals-normal-foreground: 0 0% 100%;
+    --vitals-warning: 38 92% 50%;
+    --vitals-warning-foreground: 0 0% 100%;
+    --vitals-urgent: 0 84% 60%;
+    --vitals-urgent-foreground: 0 0% 100%;
+    
+    --status-stable: 142 71% 45%;
+    --status-stable-foreground: 0 0% 100%;
+    --status-attention: 38 92% 50%;
+    --status-attention-foreground: 0 0% 100%;
+    --status-critical: 0 84% 60%;
+    --status-critical-foreground: 0 0% 100%;
+    
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -99,14 +121,6 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
-
-    /* Vitals Status Colors - Dark Mode */
-    --vitals-normal: 217 91% 60%;
-    --vitals-normal-foreground: 0 0% 100%;
-    --vitals-warning: 38 92% 50%;
-    --vitals-warning-foreground: 0 0% 100%;
-    --vitals-urgent: 0 84% 60%;
-    --vitals-urgent-foreground: 0 0% 100%;
   }
 }
 
