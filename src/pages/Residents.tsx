@@ -8,13 +8,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { AlertTriangle, Search, Plus } from "lucide-react";
+import { AlertTriangle, Search, Plus, Activity } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { insertResident } from "@/data/db";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { AgeInput } from "@/components/AgeInput";
 import { useTranslation } from "react-i18next";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { subDays, isAfter, format } from "date-fns";
 
 // Define the structure of a Resident object
 interface Resident {
@@ -44,6 +46,8 @@ export default function Residents() {
   const [searchTerm, setSearchTerm] = useState("");
   const [runningFallCheck, setRunningFallCheck] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [selectedResident, setSelectedResident] = useState<Resident | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -53,6 +57,7 @@ export default function Residents() {
     notes: ""
   });
   const [orgId, setOrgId] = useState<string | null>(null);
+  const [vitalsData, setVitalsData] = useState<any[]>([]);
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -82,6 +87,41 @@ export default function Residents() {
       toast.error(error.message || "Failed to load residents");
     }
   }, [error]);
+
+  useEffect(() => {
+    if (selectedResident && isDetailsDialogOpen) {
+      loadVitalsData(selectedResident.id);
+    }
+  }, [selectedResident, isDetailsDialogOpen]);
+
+  const loadVitalsData = async (residentId: string) => {
+    try {
+      const sevenDaysAgo = subDays(new Date(), 7);
+      
+      const { data, error } = await supabase
+        .from('vitals')
+        .select('*')
+        .eq('resident_id', residentId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      // Filter to last 7 days
+      const filtered = (data || []).filter((vital) =>
+        isAfter(new Date(vital.created_at), sevenDaysAgo)
+      );
+
+      setVitalsData(filtered);
+    } catch (error: any) {
+      console.error("Error loading vitals:", error);
+      toast.error("Failed to load vitals data");
+    }
+  };
+
+  const handleViewDetails = (resident: Resident) => {
+    setSelectedResident(resident);
+    setIsDetailsDialogOpen(true);
+  };
 
   const handleAddResident = async () => {
     if (!orgId) {
@@ -345,14 +385,18 @@ export default function Residents() {
           </TableHeader>
           <TableBody>
             {filteredResidents.map((resident: Resident) => (
-              <TableRow key={resident.id}>
+              <TableRow 
+                key={resident.id} 
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => handleViewDetails(resident)}
+              >
                 <TableCell className="font-medium">{resident.name}</TableCell>
                 <TableCell>{resident.room}</TableCell>
                 <TableCell>{resident.age}</TableCell>
                 <TableCell className="capitalize">{resident.gait}</TableCell>
                 <TableCell>{resident.notes || "-"}</TableCell>
                 <TableCell>{new Date(resident.created_at).toLocaleDateString()}</TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                   <Button
                     size="sm"
                     variant="outline"
@@ -379,7 +423,180 @@ export default function Residents() {
         <div className="text-center py-10 text-muted-foreground">{t('residents.noResidents')}</div>
       )}
 
-      {/* Pagination or other elements can go here */}
+      {/* Resident Details Dialog */}
+      <Dialog open={isDetailsDialogOpen} onOpenChange={setIsDetailsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Resident Details
+            </DialogTitle>
+            <DialogDescription>
+              View detailed information and vitals history
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedResident && (
+            <div className="space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                <div>
+                  <p className="text-sm text-muted-foreground">Name</p>
+                  <p className="font-medium">{selectedResident.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Room</p>
+                  <p className="font-medium">{selectedResident.room}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Age</p>
+                  <p className="font-medium">{selectedResident.age} years</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Gait</p>
+                  <p className="font-medium capitalize">{selectedResident.gait}</p>
+                </div>
+                {selectedResident.notes && (
+                  <div className="col-span-2">
+                    <p className="text-sm text-muted-foreground">Notes</p>
+                    <p className="font-medium">{selectedResident.notes}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Vitals History and Trends Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Vitals History and Trends (Last 7 Days)</h3>
+                
+                {vitalsData.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No vitals data available for the last 7 days
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Heart Rate Chart */}
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-4">Heart Rate (bpm)</h4>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={vitalsData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis 
+                            dataKey="created_at" 
+                            tickFormatter={(date) => format(new Date(date), 'MMM dd')}
+                          />
+                          <YAxis />
+                          <Tooltip 
+                            labelFormatter={(date) => format(new Date(date), 'MMM dd, yyyy')}
+                          />
+                          <Legend />
+                          <Line 
+                            type="monotone" 
+                            dataKey="heart_rate" 
+                            stroke="hsl(var(--primary))" 
+                            strokeWidth={2}
+                            name="Heart Rate"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Temperature Chart */}
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-4">Temperature (°C)</h4>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={vitalsData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis 
+                            dataKey="created_at" 
+                            tickFormatter={(date) => format(new Date(date), 'MMM dd')}
+                          />
+                          <YAxis />
+                          <Tooltip 
+                            labelFormatter={(date) => format(new Date(date), 'MMM dd, yyyy')}
+                          />
+                          <Legend />
+                          <Line 
+                            type="monotone" 
+                            dataKey="temperature" 
+                            stroke="hsl(var(--destructive))" 
+                            strokeWidth={2}
+                            name="Temperature"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Blood Pressure Chart */}
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-4">Blood Pressure (mmHg)</h4>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={vitalsData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis 
+                            dataKey="created_at" 
+                            tickFormatter={(date) => format(new Date(date), 'MMM dd')}
+                          />
+                          <YAxis />
+                          <Tooltip 
+                            labelFormatter={(date) => format(new Date(date), 'MMM dd, yyyy')}
+                          />
+                          <Legend />
+                          <Line 
+                            type="monotone" 
+                            dataKey="blood_pressure_systolic" 
+                            stroke="hsl(var(--chart-1))" 
+                            strokeWidth={2}
+                            name="Systolic"
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="blood_pressure_diastolic" 
+                            stroke="hsl(var(--chart-2))" 
+                            strokeWidth={2}
+                            name="Diastolic"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* SpO2 Chart */}
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-4">Blood Oxygen (SpO2 %)</h4>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <LineChart data={vitalsData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis 
+                            dataKey="created_at" 
+                            tickFormatter={(date) => format(new Date(date), 'MMM dd')}
+                          />
+                          <YAxis domain={[90, 100]} />
+                          <Tooltip 
+                            labelFormatter={(date) => format(new Date(date), 'MMM dd, yyyy')}
+                          />
+                          <Legend />
+                          <Line 
+                            type="monotone" 
+                            dataKey="spo2" 
+                            stroke="hsl(var(--chart-3))" 
+                            strokeWidth={2}
+                            name="SpO2"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDetailsDialogOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
