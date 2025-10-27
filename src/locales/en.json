@@ -138,6 +138,24 @@
     "previous": "Previous",
     "next": "Next"
   },
+  "reports": {
+    "title": "Reports",
+    "description": "Generate and download CSV reports",
+    "residentsReport": "Residents Report",
+    "residentsDescription": "Export all residents with their latest risk scores",
+    "tasksReport": "Tasks Report",
+    "tasksDescription": "Export all tasks with status and assigned staff",
+    "incidentsReport": "Incidents Report",
+    "incidentsDescription": "Export all incidents with type and severity",
+    "download": "Download CSV",
+    "exporting": "Exporting...",
+    "success": "Success",
+    "error": "Error",
+    "exportFailed": "Failed to export report",
+    "residentsExported": "Residents report exported successfully",
+    "tasksExported": "Tasks report exported successfully",
+    "incidentsExported": "Incidents report exported successfully"
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your account settings and preferences",

@@ -32,6 +32,7 @@ export const Navigation = () => {
     { path: '/fall-check', label: t('navigation.fallCheck') },
     { path: '/falls', label: t('navigation.fallChecks') },
     { path: '/alerts', label: t('navigation.alerts') },
+    { path: '/reports', label: t('navigation.reports') },
   ];
 
   return (

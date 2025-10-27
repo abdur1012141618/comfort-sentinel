@@ -16,6 +16,7 @@ import Vitals from "./pages/Vitals";
 import Incidents from "./pages/Incidents";
 import Logs from "./pages/Logs";
 import Settings from "./pages/Settings";
+import Reports from "./pages/Reports";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
@@ -89,6 +90,13 @@ const App = () => {
                   <ProtectedRoute>
                     <DashboardLayout>
                       <Settings />
+                    </DashboardLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/reports" element={
+                  <ProtectedRoute>
+                    <DashboardLayout>
+                      <Reports />
                     </DashboardLayout>
                   </ProtectedRoute>
                 } />
