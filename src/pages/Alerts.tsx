@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle, AlertCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface Alert {
   id: string;
@@ -17,6 +18,7 @@ interface Alert {
 }
 
 export default function Alerts() {
+  const { t } = useTranslation();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
@@ -24,13 +26,11 @@ export default function Alerts() {
   const loadAlerts = async () => {
     try {
       setLoading(true);
-      // NOTE: getAlerts() is assumed to fetch from the v_alerts view which is fine
       const data = await getAlerts();
-      // Filter to only show open alerts
       const openAlerts = data.filter((alert: Alert) => alert.status === "open");
       setAlerts(openAlerts);
     } catch (e: any) {
-      toast.error(e?.message || "Failed to load alerts");
+      toast.error(e?.message || t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -44,10 +44,10 @@ export default function Alerts() {
     setResolvingId(alertId);
     try {
       await resolveAlert(alertId);
-      toast.success("Alert resolved successfully");
+      toast.success(t('alerts.alertResolved'));
       await loadAlerts();
     } catch (e: any) {
-      toast.error(e?.message || "Failed to resolve alert");
+      toast.error(e?.message || t('alerts.alertResolveError'));
     } finally {
       setResolvingId(null);
     }
@@ -79,28 +79,28 @@ export default function Alerts() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Open Alerts</h1>
-        <p className="text-muted-foreground">Active alerts requiring attention ({alerts.length} open)</p>
+        <h1 className="text-3xl font-bold mb-2">{t('alerts.title')}</h1>
+        <p className="text-muted-foreground">{t('alerts.subtitle', { count: alerts.length })}</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-destructive" />
-            Active Alerts
+            {t('alerts.activeAlerts')}
           </CardTitle>
-          <CardDescription>Alerts that need to be resolved</CardDescription>
+          <CardDescription>{t('alerts.activeAlertsDesc')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Resident</TableHead>
-                  <TableHead>Created At</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('alerts.type')}</TableHead>
+                  <TableHead>{t('alerts.resident')}</TableHead>
+                  <TableHead>{t('alerts.createdAt')}</TableHead>
+                  <TableHead>{t('alerts.status')}</TableHead>
+                  <TableHead className="text-right">{t('alerts.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -109,7 +109,7 @@ export default function Alerts() {
                     <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                       <div className="flex flex-col items-center gap-2">
                         <CheckCircle className="h-8 w-8 text-green-500" />
-                        <p>No open alerts. All clear!</p>
+                        <p>{t('alerts.noAlerts')}</p>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -134,11 +134,11 @@ export default function Alerts() {
                           disabled={resolvingId === alert.id}
                         >
                           {resolvingId === alert.id ? (
-                            "Resolving..."
+                            t('alerts.resolving')
                           ) : (
                             <>
                               <CheckCircle className="mr-2 h-4 w-4" />
-                              Resolve
+                              {t('alerts.resolve')}
                             </>
                           )}
                         </Button>

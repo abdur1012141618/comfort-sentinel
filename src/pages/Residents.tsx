@@ -14,6 +14,7 @@ import { insertResident } from "@/data/db";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { AgeInput } from "@/components/AgeInput";
+import { useTranslation } from "react-i18next";
 
 // Define the structure of a Resident object
 interface Resident {
@@ -38,6 +39,7 @@ const residentSchema = z.object({
 });
 
 export default function Residents() {
+  const { t } = useTranslation();
   const { residents, loading, error, refetch } = useResidents();
   const [searchTerm, setSearchTerm] = useState("");
   const [runningFallCheck, setRunningFallCheck] = useState<string | null>(null);
@@ -83,13 +85,12 @@ export default function Residents() {
 
   const handleAddResident = async () => {
     if (!orgId) {
-      toast.error("Organization not found. Please try logging in again.");
+      toast.error(t('common.error'));
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // Validate form data
       const validated = residentSchema.parse({
         name: formData.name,
         room: formData.room,
@@ -98,7 +99,6 @@ export default function Residents() {
         notes: formData.notes || undefined
       });
 
-      // Insert resident with org_id
       await insertResident({
         name: validated.name,
         room: validated.room,
@@ -108,17 +108,16 @@ export default function Residents() {
         org_id: orgId
       });
 
-      toast.success("Resident added successfully");
+      toast.success(t('common.success'));
       setIsAddDialogOpen(false);
       setFormData({ name: "", room: "", age: "", gait: "", notes: "" });
       
-      // Refresh residents list
       refetch();
     } catch (e: any) {
       if (e instanceof z.ZodError) {
         toast.error(e.errors[0].message);
       } else {
-        toast.error(e?.message || "Failed to add resident");
+        toast.error(e?.message || t('common.error'));
       }
     } finally {
       setIsSubmitting(false);
@@ -235,24 +234,24 @@ export default function Residents() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Residents</h1>
+        <h1 className="text-3xl font-bold">{t('residents.title')}</h1>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Add New Resident
+              {t('residents.addResident')}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Add New Resident</DialogTitle>
+              <DialogTitle>{t('residents.addResidentTitle')}</DialogTitle>
               <DialogDescription>
-                Enter the resident's information. All fields except notes are required.
+                {t('residents.addResidentDesc')}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">{t('residents.name')}</Label>
                 <Input
                   id="name"
                   placeholder="John Doe"
@@ -261,7 +260,7 @@ export default function Residents() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="room">Room</Label>
+                <Label htmlFor="room">{t('dashboard.room')}</Label>
                 <Input
                   id="room"
                   placeholder="A-101"
@@ -270,7 +269,7 @@ export default function Residents() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="age">Age</Label>
+                <Label htmlFor="age">{t('residents.age')}</Label>
                 <AgeInput
                   value={formData.age}
                   onChange={(v) => setFormData({ ...formData, age: String(v ?? "") })}
@@ -278,27 +277,27 @@ export default function Residents() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="gait">Gait</Label>
+                <Label htmlFor="gait">{t('residents.gait')}</Label>
                 <Select
                   value={formData.gait}
                   onValueChange={(value) => setFormData({ ...formData, gait: value })}
                 >
                   <SelectTrigger id="gait">
-                    <SelectValue placeholder="Select gait type" />
+                    <SelectValue placeholder={t('residents.selectGait')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="steady">Steady</SelectItem>
-                    <SelectItem value="unsteady">Unsteady</SelectItem>
-                    <SelectItem value="slow">Slow</SelectItem>
-                    <SelectItem value="shuffling">Shuffling</SelectItem>
+                    <SelectItem value="steady">{t('residents.gaitTypes.steady')}</SelectItem>
+                    <SelectItem value="unsteady">{t('residents.gaitTypes.unsteady')}</SelectItem>
+                    <SelectItem value="slow">{t('residents.gaitTypes.slow')}</SelectItem>
+                    <SelectItem value="shuffling">{t('residents.gaitTypes.shuffling')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="notes">Notes (Optional)</Label>
+                <Label htmlFor="notes">{t('residents.notes')}</Label>
                 <Textarea
                   id="notes"
-                  placeholder="Additional information..."
+                  placeholder={t('residents.notes')}
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   rows={3}
@@ -311,21 +310,20 @@ export default function Residents() {
                 onClick={() => setIsAddDialogOpen(false)}
                 disabled={isSubmitting}
               >
-                Cancel
+                {t('residents.cancel')}
               </Button>
               <Button onClick={handleAddResident} disabled={isSubmitting}>
-                {isSubmitting ? "Adding..." : "Add Resident"}
+                {isSubmitting ? t('residents.adding') : t('residents.add')}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
-      <p className="text-muted-foreground">Manage resident information and records</p>
 
       <div className="flex items-center space-x-2">
         <Search className="h-5 w-5 text-muted-foreground" />
         <Input
-          placeholder="Search by name or room..."
+          placeholder={t('residents.searchPlaceholder')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-sm"
@@ -336,13 +334,13 @@ export default function Residents() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Room</TableHead>
-              <TableHead>Age</TableHead>
-              <TableHead>Gait</TableHead>
-              <TableHead>Notes</TableHead>
-              <TableHead>Added</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t('residents.name')}</TableHead>
+              <TableHead>{t('dashboard.room')}</TableHead>
+              <TableHead>{t('residents.age')}</TableHead>
+              <TableHead>{t('residents.gait')}</TableHead>
+              <TableHead>{t('residents.notes')}</TableHead>
+              <TableHead>{t('residents.addedOn')}</TableHead>
+              <TableHead className="text-right">{t('dashboard.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -362,11 +360,11 @@ export default function Residents() {
                     disabled={runningFallCheck === resident.id || !resident.gait || !resident.age}
                   >
                     {runningFallCheck === resident.id ? (
-                      "Running..."
+                      t('common.loading')
                     ) : (
                       <>
                         <AlertTriangle className="mr-2 h-4 w-4" />
-                        Fall Check
+                        {t('navigation.fallCheck')}
                       </>
                     )}
                   </Button>
@@ -378,7 +376,7 @@ export default function Residents() {
       </div>
 
       {filteredResidents.length === 0 && !loading && (
-        <div className="text-center py-10 text-muted-foreground">No residents found.</div>
+        <div className="text-center py-10 text-muted-foreground">{t('residents.noResidents')}</div>
       )}
 
       {/* Pagination or other elements can go here */}

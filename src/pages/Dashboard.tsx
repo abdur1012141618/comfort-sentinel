@@ -12,10 +12,12 @@ import { AlertTriangle, Clock, Users, TrendingUp, CheckCircle2, XCircle, Databas
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useTranslation } from 'react-i18next';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [seeding, setSeeding] = useState(false);
   
@@ -36,11 +38,10 @@ export default function Dashboard() {
     try {
       setLoadingId(id);
       await ackAlert(id);
-      toast({ title: "Alert acknowledged", description: "The alert has been marked as acknowledged." });
-      // Refetch all dashboard data to ensure consistency
+      toast({ title: t('dashboard.ack'), description: t('alerts.alertResolved') });
       refetchAll();
     } catch (e: any) {
-      toast({ title: "Error", description: e?.message ?? "Failed to acknowledge", variant: "destructive" });
+      toast({ title: t('common.error'), description: e?.message ?? t('alerts.alertResolveError'), variant: "destructive" });
     } finally {
       setLoadingId(null);
     }
@@ -50,11 +51,10 @@ export default function Dashboard() {
     try {
       setLoadingId(id);
       await resolveAlert(id);
-      toast({ title: "Alert resolved", description: "The alert has been marked as resolved." });
-      // Refetch all dashboard data to ensure consistency
+      toast({ title: t('alerts.alertResolved'), description: t('alerts.alertResolved') });
       refetchAll();
     } catch (e: any) {
-      toast({ title: "Error", description: e?.message ?? "Failed to resolve", variant: "destructive" });
+      toast({ title: t('common.error'), description: e?.message ?? t('alerts.alertResolveError'), variant: "destructive" });
     } finally {
       setLoadingId(null);
     }
@@ -78,8 +78,8 @@ export default function Dashboard() {
       }
       
       toast({
-        title: "Test Data Added",
-        description: "Successfully added test residents and alerts.",
+        title: t('common.success'),
+        description: t('dashboard.addTestData'),
       });
       
       // Refetch all dashboard data
@@ -101,7 +101,7 @@ export default function Dashboard() {
   };
 
   const getSeverityBadge = (severity: string | null) => {
-    if (!severity) return <Badge variant="secondary">Unknown</Badge>;
+    if (!severity) return <Badge variant="secondary">{t('common.unknown')}</Badge>;
     
     const variant = severity === 'high' ? 'destructive' : 
                    severity === 'medium' ? 'default' : 'secondary';
@@ -112,14 +112,14 @@ export default function Dashboard() {
     <>
       <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.title')}</h1>
             <p className="text-muted-foreground">
-              Overview of alerts, residents, and system status
+              {t('dashboard.subtitle')}
             </p>
           </div>
           <Button onClick={handleSeedDemo} disabled={seeding} variant="outline">
             <Database className="h-4 w-4 mr-2" />
-            {seeding ? "Adding..." : "Add Test Data"}
+            {seeding ? t('dashboard.adding') : t('dashboard.addTestData')}
           </Button>
         </div>
 
@@ -127,7 +127,7 @@ export default function Dashboard() {
         <div className="grid gap-6 md:grid-cols-3 mb-8">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-medium">Total Residents</CardTitle>
+              <CardTitle className="text-lg font-medium">{t('dashboard.totalResidents')}</CardTitle>
             </CardHeader>
             <CardContent>
               {totalResidents.loading ? (
@@ -139,7 +139,7 @@ export default function Dashboard() {
                   <div className="text-5xl font-bold mb-2">{totalResidents.count}</div>
                   <p className="text-sm text-muted-foreground">
                     <Link to="/residents" className="hover:underline inline-flex items-center">
-                      View all residents <Users className="ml-1 h-3 w-3" />
+                      {t('dashboard.viewAllResidents')} <Users className="ml-1 h-3 w-3" />
                     </Link>
                   </p>
                 </div>
@@ -149,7 +149,7 @@ export default function Dashboard() {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-medium">Total Alerts</CardTitle>
+              <CardTitle className="text-lg font-medium">{t('dashboard.totalAlerts')}</CardTitle>
             </CardHeader>
             <CardContent>
               {totalAlerts.loading ? (
@@ -159,7 +159,7 @@ export default function Dashboard() {
               ) : (
                 <div>
                   <div className="text-5xl font-bold mb-2">{totalAlerts.count}</div>
-                  <p className="text-sm text-muted-foreground">All time</p>
+                  <p className="text-sm text-muted-foreground">{t('dashboard.allTime')}</p>
                 </div>
               )}
             </CardContent>
@@ -167,7 +167,7 @@ export default function Dashboard() {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-medium">Open Alerts</CardTitle>
+              <CardTitle className="text-lg font-medium">{t('dashboard.openAlerts')}</CardTitle>
             </CardHeader>
             <CardContent>
               {openAlerts.loading ? (
@@ -179,7 +179,7 @@ export default function Dashboard() {
                   <div className="text-5xl font-bold mb-2 text-destructive">{openAlerts.count}</div>
                   <p className="text-sm text-muted-foreground">
                     <Link to="/alerts" className="hover:underline inline-flex items-center">
-                      View open alerts <AlertTriangle className="ml-1 h-3 w-3" />
+                      {t('dashboard.viewOpenAlerts')} <AlertTriangle className="ml-1 h-3 w-3" />
                     </Link>
                   </p>
                 </div>
@@ -191,20 +191,20 @@ export default function Dashboard() {
         {/* Chart Section */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Alert Trends</CardTitle>
-            <CardDescription>Daily alert counts over the last 7 days</CardDescription>
+            <CardTitle>{t('dashboard.alertTrends')}</CardTitle>
+            <CardDescription>{t('dashboard.alertTrendsDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
             {dailyAlerts.loading ? (
               <div className="h-[300px] flex items-center justify-center">
-                <p className="text-muted-foreground">Loading chart data...</p>
+                <p className="text-muted-foreground">{t('dashboard.loadingChartData')}</p>
               </div>
             ) : dailyAlerts.error ? (
               <div className="h-[300px] flex items-center justify-center">
                 <div className="text-center">
                   <p className="text-destructive mb-2">{dailyAlerts.error}</p>
                   <Button variant="outline" size="sm" onClick={dailyAlerts.retry}>
-                    Retry
+                    {t('dashboard.retry')}
                   </Button>
                 </div>
               </div>
@@ -245,8 +245,8 @@ export default function Dashboard() {
         {/* Tables Grid */}
         <div className="grid gap-6 lg:grid-cols-2 mb-8">
           <DashboardCard
-            title="Recent Alerts"
-            description="Last 10 alerts with actions"
+            title={t('dashboard.recentAlerts')}
+            description={t('dashboard.recentAlertsDesc')}
             loading={recentAlerts.loading}
             error={recentAlerts.error}
             onRetry={recentAlerts.retry}
@@ -254,10 +254,10 @@ export default function Dashboard() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Severity</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t('dashboard.time')}</TableHead>
+                  <TableHead>{t('dashboard.type')}</TableHead>
+                  <TableHead>{t('dashboard.severity')}</TableHead>
+                  <TableHead>{t('dashboard.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -278,7 +278,7 @@ export default function Dashboard() {
                             disabled={loadingId === alert.id}
                           >
                             <CheckCircle2 className="w-3 h-3 mr-1" />
-                            Ack
+                            {t('dashboard.ack')}
                           </Button>
                           <Button
                             size="sm"
@@ -286,7 +286,7 @@ export default function Dashboard() {
                             disabled={loadingId === alert.id}
                           >
                             <XCircle className="w-3 h-3 mr-1" />
-                            Resolve
+                            {t('dashboard.resolve')}
                           </Button>
                         </div>
                       )}
@@ -298,8 +298,8 @@ export default function Dashboard() {
           </DashboardCard>
 
           <DashboardCard
-            title="Rooms Requiring Attention"
-            description="Top 5 by recent events"
+            title={t('dashboard.roomsAttention')}
+            description={t('dashboard.roomsAttentionDesc')}
             loading={roomsAttention.loading}
             error={roomsAttention.error}
             onRetry={roomsAttention.retry}
@@ -308,9 +308,9 @@ export default function Dashboard() {
               {roomsAttention.rooms.map((room, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                   <div>
-                    <p className="font-medium">{room.room}</p>
+                    <p className="font-medium">{t('dashboard.room')}: {room.room}</p>
                     <p className="text-sm text-muted-foreground">
-                      {room.event_count} events
+                      {room.event_count} {t('dashboard.events')}
                     </p>
                   </div>
                   <Badge variant="outline">
@@ -324,8 +324,8 @@ export default function Dashboard() {
 
         {/* Bottom Section */}
         <DashboardCard
-          title="Residents at Risk"
-          description="Last 24h fall/high-risk residents"
+          title={t('dashboard.residentsRisk')}
+          description={t('dashboard.residentsRiskDesc')}
           loading={residentsRisk.loading}
           error={residentsRisk.error}
           onRetry={residentsRisk.retry}
@@ -336,14 +336,14 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-medium">{resident.full_name}</h4>
                   <Badge variant={resident.risk_score >= 70 ? 'destructive' : 'default'}>
-                    {resident.risk_score}% risk
+                    {resident.risk_score}% {t('dashboard.risk')}
                   </Badge>
                 </div>
                 <p className="text-sm text-muted-foreground mb-1">
-                  Room: {resident.room || 'N/A'}
+                  {t('dashboard.room')}: {resident.room || 'N/A'}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Last event: {formatDate(resident.last_event)}
+                  {t('dashboard.lastEvent')}: {formatDate(resident.last_event)}
                 </p>
               </div>
             ))}
