@@ -53,6 +53,14 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Vitals Status Colors */
+    --vitals-normal: 217 91% 60%;
+    --vitals-normal-foreground: 0 0% 100%;
+    --vitals-warning: 38 92% 50%;
+    --vitals-warning-foreground: 0 0% 100%;
+    --vitals-urgent: 0 84% 60%;
+    --vitals-urgent-foreground: 0 0% 100%;
   }
 
   .dark {
@@ -91,6 +99,14 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Vitals Status Colors - Dark Mode */
+    --vitals-normal: 217 91% 60%;
+    --vitals-normal-foreground: 0 0% 100%;
+    --vitals-warning: 38 92% 50%;
+    --vitals-warning-foreground: 0 0% 100%;
+    --vitals-urgent: 0 84% 60%;
+    --vitals-urgent-foreground: 0 0% 100%;
   }
 }
 

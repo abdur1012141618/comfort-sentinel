@@ -8,11 +8,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ackAlert, resolveAlert } from '@/api/alerts';
 import { useToast } from '@/hooks/use-toast';
-import { AlertTriangle, Clock, Users, TrendingUp, CheckCircle2, XCircle, Database, Activity } from 'lucide-react';
+import { AlertTriangle, Clock, Users, TrendingUp, CheckCircle2, XCircle, Database, Activity, Heart, Thermometer, Wind, Bell } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useTranslation } from 'react-i18next';
+import { getVitals } from '@/api/vitals';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const { t } = useTranslation();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [seeding, setSeeding] = useState(false);
+  const [latestVitals, setLatestVitals] = useState<any>(null);
   
   const {
     openAlerts,
@@ -108,23 +110,89 @@ export default function Dashboard() {
     return <Badge variant={variant}>{severity}</Badge>;
   };
 
+  useEffect(() => {
+    const fetchLatestVitals = async () => {
+      try {
+        const vitals = await getVitals();
+        if (vitals && vitals.length > 0) {
+          // Calculate averages for dashboard display
+          const avgHeartRate = Math.round(vitals.reduce((acc, v) => acc + (v.heart_rate || 0), 0) / vitals.length);
+          const avgTemp = (vitals.reduce((acc, v) => acc + (v.temperature || 0), 0) / vitals.length).toFixed(1);
+          const avgSystolic = Math.round(vitals.reduce((acc, v) => acc + (v.blood_pressure_systolic || 0), 0) / vitals.length);
+          const avgDiastolic = Math.round(vitals.reduce((acc, v) => acc + (v.blood_pressure_diastolic || 0), 0) / vitals.length);
+          const avgSpO2 = Math.round(vitals.reduce((acc, v) => acc + (v.spo2 || 0), 0) / vitals.length);
+          
+          setLatestVitals({
+            heartRate: avgHeartRate,
+            temperature: avgTemp,
+            bloodPressure: `${avgSystolic}/${avgDiastolic}`,
+            spO2: avgSpO2
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching vitals:', error);
+      }
+    };
+    
+    fetchLatestVitals();
+  }, []);
+
+  const getVitalStatus = (type: string, value: number) => {
+    switch(type) {
+      case 'heartRate':
+        if (value >= 60 && value <= 100) return 'normal';
+        if (value > 100 && value <= 120) return 'warning';
+        return 'urgent';
+      case 'temperature':
+        if (value >= 36.1 && value <= 37.2) return 'normal';
+        if (value >= 37.3 && value <= 38) return 'warning';
+        return 'urgent';
+      case 'spO2':
+        if (value >= 95) return 'normal';
+        if (value >= 90) return 'warning';
+        return 'urgent';
+      default:
+        return 'normal';
+    }
+  };
+
   return (
     <>
       <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.title')}</h1>
-            <p className="text-muted-foreground">
-              {t('dashboard.subtitle')}
-            </p>
-          </div>
-          <Button onClick={handleSeedDemo} disabled={seeding} variant="outline">
-            <Database className="h-4 w-4 mr-2" />
-            {seeding ? t('dashboard.adding') : t('dashboard.addTestData')}
-          </Button>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.title')}</h1>
+          <p className="text-muted-foreground">
+            {t('dashboard.subtitle')}
+          </p>
         </div>
+        <Button onClick={handleSeedDemo} disabled={seeding} variant="outline">
+          <Database className="h-4 w-4 mr-2" />
+          {seeding ? t('dashboard.adding') : t('dashboard.addTestData')}
+        </Button>
+      </div>
 
-        {/* Stats Grid - Key Metrics */}
-        <div className="grid gap-6 md:grid-cols-3 mb-8">
+      {/* Emergency Alerts Section */}
+      {openAlerts.count > 0 && (
+        <Card className="mb-6 border-destructive/50 bg-destructive/5">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Bell className="h-5 w-5 text-destructive" />
+              <CardTitle className="text-destructive">Emergency Alerts</CardTitle>
+            </div>
+            <CardDescription>
+              {openAlerts.count} active alert{openAlerts.count !== 1 ? 's' : ''} requiring immediate attention
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="destructive" className="w-full sm:w-auto">
+              <Link to="/alerts">View All Alerts</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Stats Grid - Key Metrics */}
+      <div className="grid gap-6 md:grid-cols-3 mb-8">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg font-medium">{t('dashboard.totalResidents')}</CardTitle>
@@ -188,8 +256,101 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Chart Section */}
-        <Card className="mb-8">
+        {/* Vitals Overview Cards */}
+        {latestVitals && (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+            <Card className={`border-l-4 ${getVitalStatus('heartRate', latestVitals.heartRate) === 'normal' ? 'border-l-vitals-normal' : getVitalStatus('heartRate', latestVitals.heartRate) === 'warning' ? 'border-l-vitals-warning' : 'border-l-vitals-urgent'}`}>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium">Heart Rate</CardTitle>
+                  <Heart className={`h-4 w-4 ${getVitalStatus('heartRate', latestVitals.heartRate) === 'normal' ? 'text-vitals-normal' : getVitalStatus('heartRate', latestVitals.heartRate) === 'warning' ? 'text-vitals-warning' : 'text-vitals-urgent'}`} />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{latestVitals.heartRate}</div>
+                <p className="text-xs text-muted-foreground mt-1">bpm (avg)</p>
+                <Badge 
+                  className={`mt-2 ${
+                    getVitalStatus('heartRate', latestVitals.heartRate) === 'normal' 
+                      ? 'bg-vitals-normal text-vitals-normal-foreground' 
+                      : getVitalStatus('heartRate', latestVitals.heartRate) === 'warning'
+                      ? 'bg-vitals-warning text-vitals-warning-foreground'
+                      : 'bg-vitals-urgent text-vitals-urgent-foreground'
+                  }`}
+                >
+                  {getVitalStatus('heartRate', latestVitals.heartRate)}
+                </Badge>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-vitals-normal">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium">Blood Pressure</CardTitle>
+                  <Activity className="h-4 w-4 text-vitals-normal" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{latestVitals.bloodPressure}</div>
+                <p className="text-xs text-muted-foreground mt-1">mmHg (avg)</p>
+                <Badge className="mt-2 bg-vitals-normal text-vitals-normal-foreground">
+                  normal
+                </Badge>
+              </CardContent>
+            </Card>
+
+            <Card className={`border-l-4 ${getVitalStatus('temperature', parseFloat(latestVitals.temperature)) === 'normal' ? 'border-l-vitals-normal' : getVitalStatus('temperature', parseFloat(latestVitals.temperature)) === 'warning' ? 'border-l-vitals-warning' : 'border-l-vitals-urgent'}`}>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium">Temperature</CardTitle>
+                  <Thermometer className={`h-4 w-4 ${getVitalStatus('temperature', parseFloat(latestVitals.temperature)) === 'normal' ? 'text-vitals-normal' : getVitalStatus('temperature', parseFloat(latestVitals.temperature)) === 'warning' ? 'text-vitals-warning' : 'text-vitals-urgent'}`} />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{latestVitals.temperature}°C</div>
+                <p className="text-xs text-muted-foreground mt-1">celsius (avg)</p>
+                <Badge 
+                  className={`mt-2 ${
+                    getVitalStatus('temperature', parseFloat(latestVitals.temperature)) === 'normal' 
+                      ? 'bg-vitals-normal text-vitals-normal-foreground' 
+                      : getVitalStatus('temperature', parseFloat(latestVitals.temperature)) === 'warning'
+                      ? 'bg-vitals-warning text-vitals-warning-foreground'
+                      : 'bg-vitals-urgent text-vitals-urgent-foreground'
+                  }`}
+                >
+                  {getVitalStatus('temperature', parseFloat(latestVitals.temperature))}
+                </Badge>
+              </CardContent>
+            </Card>
+
+            <Card className={`border-l-4 ${getVitalStatus('spO2', latestVitals.spO2) === 'normal' ? 'border-l-vitals-normal' : getVitalStatus('spO2', latestVitals.spO2) === 'warning' ? 'border-l-vitals-warning' : 'border-l-vitals-urgent'}`}>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium">SpO2</CardTitle>
+                  <Wind className={`h-4 w-4 ${getVitalStatus('spO2', latestVitals.spO2) === 'normal' ? 'text-vitals-normal' : getVitalStatus('spO2', latestVitals.spO2) === 'warning' ? 'text-vitals-warning' : 'text-vitals-urgent'}`} />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{latestVitals.spO2}%</div>
+                <p className="text-xs text-muted-foreground mt-1">oxygen saturation (avg)</p>
+                <Badge 
+                  className={`mt-2 ${
+                    getVitalStatus('spO2', latestVitals.spO2) === 'normal' 
+                      ? 'bg-vitals-normal text-vitals-normal-foreground' 
+                      : getVitalStatus('spO2', latestVitals.spO2) === 'warning'
+                      ? 'bg-vitals-warning text-vitals-warning-foreground'
+                      : 'bg-vitals-urgent text-vitals-urgent-foreground'
+                  }`}
+                >
+                  {getVitalStatus('spO2', latestVitals.spO2)}
+                </Badge>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+      {/* Chart Section */}
+      <Card className="mb-8">
           <CardHeader>
             <CardTitle>{t('dashboard.alertTrends')}</CardTitle>
             <CardDescription>{t('dashboard.alertTrendsDesc')}</CardDescription>
@@ -242,8 +403,8 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Tables Grid */}
-        <div className="grid gap-6 lg:grid-cols-2 mb-8">
+      {/* Tables Grid */}
+      <div className="grid gap-6 lg:grid-cols-2 mb-8">
           <DashboardCard
             title={t('dashboard.recentAlerts')}
             description={t('dashboard.recentAlertsDesc')}
@@ -322,8 +483,8 @@ export default function Dashboard() {
           </DashboardCard>
         </div>
 
-        {/* Bottom Section */}
-        <DashboardCard
+      {/* Bottom Section */}
+      <DashboardCard
           title={t('dashboard.residentsRisk')}
           description={t('dashboard.residentsRiskDesc')}
           loading={residentsRisk.loading}
