@@ -14,7 +14,7 @@ import Residents from "./pages/Residents";
 import Tasks from "./pages/Tasks";
 import Vitals from "./pages/Vitals";
 import Incidents from "./pages/Incidents";
-import Logs from "./pages/Logs";
+
 import Settings from "./pages/Settings";
 import Reports from "./pages/Reports";
 import Login from "./pages/Login";
@@ -76,13 +76,6 @@ const App = () => {
                   <ProtectedRoute>
                     <DashboardLayout>
                       <Incidents />
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/logs" element={
-                  <ProtectedRoute>
-                    <DashboardLayout>
-                      <Logs />
                     </DashboardLayout>
                   </ProtectedRoute>
                 } />
