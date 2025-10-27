@@ -266,5 +266,11 @@
     "noHistoryData": "গত ৭ দিনের জন্য কোনো স্বাস্থ্য ডেটা উপলব্ধ নেই",
     "systolic": "সিস্টোলিক",
     "diastolic": "ডায়াস্টোলিক"
+  },
+  "notifications": {
+    "title": "বিজ্ঞপ্তি",
+    "markAllRead": "সব পড়া হয়েছে চিহ্নিত করুন",
+    "noNotifications": "কোন বিজ্ঞপ্তি নেই",
+    "unread": "অপঠিত"
   }
 }

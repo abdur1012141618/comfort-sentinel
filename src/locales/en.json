@@ -266,5 +266,11 @@
     "noHistoryData": "No vitals data available for the last 7 days",
     "systolic": "Systolic",
     "diastolic": "Diastolic"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "noNotifications": "No notifications",
+    "unread": "Unread"
   }
 }
