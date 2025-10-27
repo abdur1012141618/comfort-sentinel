@@ -157,6 +157,67 @@ export type Database = {
           },
         ]
       }
+      incidents: {
+        Row: {
+          created_at: string
+          details: string
+          id: string
+          incident_type: string
+          org_id: string
+          reported_by: string
+          resident_id: string
+          resolved_at: string | null
+          severity: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          details: string
+          id?: string
+          incident_type: string
+          org_id: string
+          reported_by: string
+          resident_id: string
+          resolved_at?: string | null
+          severity?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: string
+          id?: string
+          incident_type?: string
+          org_id?: string
+          reported_by?: string
+          resident_id?: string
+          resolved_at?: string | null
+          severity?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incidents_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incidents_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "v_residents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           created_at: string
