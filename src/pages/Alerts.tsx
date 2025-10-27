@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getAlerts, resolveAlert } from "@/api/alerts";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -38,6 +39,26 @@ export default function Alerts() {
 
   useEffect(() => {
     loadAlerts();
+
+    // Set up real-time subscription for alerts
+    const channel = supabase
+      .channel('alerts-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'alerts'
+        },
+        () => {
+          loadAlerts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleResolve = async (alertId: string) => {
