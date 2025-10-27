@@ -135,7 +135,63 @@ export default function Dashboard() {
     };
     
     fetchLatestVitals();
-  }, []);
+
+    // Set up real-time subscriptions for automatic dashboard updates
+    const fallChecksChannel = supabase
+      .channel('fall-checks-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'fall_checks'
+        },
+        () => {
+          console.log('Fall check detected, refreshing dashboard data...');
+          refetchAll();
+        }
+      )
+      .subscribe();
+
+    const vitalsChannel = supabase
+      .channel('vitals-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'vitals'
+        },
+        () => {
+          console.log('Vitals update detected, refreshing dashboard data...');
+          fetchLatestVitals();
+          refetchAll();
+        }
+      )
+      .subscribe();
+
+    const residentsChannel = supabase
+      .channel('residents-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'residents'
+        },
+        () => {
+          console.log('Resident update detected, refreshing dashboard data...');
+          refetchAll();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(fallChecksChannel);
+      supabase.removeChannel(vitalsChannel);
+      supabase.removeChannel(residentsChannel);
+    };
+  }, [refetchAll]);
 
   const getVitalStatus = (type: string, value: number) => {
     switch(type) {

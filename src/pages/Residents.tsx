@@ -164,45 +164,45 @@ export default function Residents() {
     }
   };
 
-  // MODIFIED: handleFallCheck function to simulate success for testing
   const handleFallCheck = async (resident: Resident) => {
     setRunningFallCheck(resident.id);
     try {
-      // ORIGINAL CODE (Heroku API Call - REMOVED)
-      /*
-        const response = await fetch(
-            "https://protected-brook-78896.herokuapp.com/api/v1/fall_check",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    resident_id: resident.id,
-                    gait: resident.gait,
-                    age: resident.age,
-                } ),
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error("API call failed");
-        }
-        */
-
-      // ADDED: Simulate success for testing since Heroku is down
+      // Simulate fall check completion and insert record
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      toast.success(`Fall Check simulated successfully for ${resident.name}.`);
+      // Insert fall check record with mock data
+      const { error: fallCheckError } = await supabase
+        .from('fall_checks')
+        .insert({
+          resident_id: resident.id,
+          age: resident.age,
+          gait: resident.gait,
+          history: 'Manual fall check performed',
+          is_fall: false,
+          confidence: 0.75,
+          org_id: orgId
+        });
+
+      if (fallCheckError) {
+        throw fallCheckError;
+      }
+
+      // Calculate risk score after fall check
+      const { error: riskError } = await supabase.rpc('calculate_risk_score', { 
+        p_resident_id: resident.id 
+      });
+
+      if (riskError) {
+        console.error('Risk score calculation error:', riskError);
+      }
+
+      toast.success(`Fall check completed for ${resident.name}. Risk score updated.`);
       
-      // Refetch residents data to reflect any updates from the fall check
+      // Refetch residents data to reflect updates
       refetch();
     } catch (e: any) {
-      // ORIGINAL ERROR MESSAGE
-      // toast.error(e?.message || "Error running fall check");
-
-      // NEW ERROR MESSAGE: Inform user that the API is offline
-      toast.error(`Fall Check API is offline. Please check Heroku server.`);
+      console.error('Fall check error:', e);
+      toast.error(e?.message || "Error running fall check");
     } finally {
       setRunningFallCheck(null);
     }

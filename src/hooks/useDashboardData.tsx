@@ -262,10 +262,10 @@ export function useDashboardData() {
     try {
       setResidentsRisk((prev) => ({ ...prev, loading: true, error: null }));
 
-      // Fetch residents from base table
+      // Fetch all residents from base table (no limit to show all)
       const data = await fetchView("residents", {
         select: "id, name, room, age",
-        limit: 5,
+        limit: 1000,
       });
 
       // Calculate real-time risk scores for each resident
