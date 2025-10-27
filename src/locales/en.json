@@ -185,6 +185,13 @@
     "bloodPressure": "Blood Pressure (mmHg)",
     "spO2": "SpO2 (%)",
     "recordedAt": "Recorded At",
-    "noData": "No vital signs data available"
+    "noData": "No vital signs data available",
+    "historyAndTrends": "Vitals History and Trends",
+    "historyAndTrendsDesc": "View historical vital signs data over the last 7 days",
+    "selectResident": "Select a resident",
+    "selectResidentPrompt": "Please select a resident to view their vitals history",
+    "noHistoryData": "No vitals data available for the last 7 days",
+    "systolic": "Systolic",
+    "diastolic": "Diastolic"
   }
 }
