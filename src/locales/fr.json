@@ -2,9 +2,13 @@
   "navigation": {
     "dashboard": "Tableau de bord",
     "residents": "Résidents",
+    "vitals": "Signes vitaux",
     "fallCheck": "Vérification de chute",
     "fallChecks": "Vérifications de chute",
     "alerts": "Alertes",
+    "tasks": "Tâches",
+    "incidents": "Incidents",
+    "reports": "Rapports",
     "settings": "Paramètres"
   },
   "dashboard": {
@@ -17,6 +21,7 @@
     "openAlerts": "Alertes ouvertes",
     "viewAllResidents": "Voir tous les résidents",
     "viewOpenAlerts": "Voir les alertes ouvertes",
+    "viewAllAlerts": "Voir toutes les alertes",
     "allTime": "Tout le temps",
     "alertTrends": "Tendances des alertes",
     "alertTrendsDesc": "Nombre d'alertes quotidiennes au cours des 7 derniers jours",
@@ -37,7 +42,23 @@
     "events": "événements",
     "room": "Chambre",
     "lastEvent": "Dernier événement",
-    "risk": "risque"
+    "risk": "risque",
+    "emergencyAlerts": "Alertes d'urgence",
+    "activeAlertsRequiringAttention": "alertes actives nécessitant une attention immédiate",
+    "heartRate": "Fréquence cardiaque",
+    "bloodPressure": "Pression artérielle",
+    "temperature": "Température",
+    "spO2": "SpO2",
+    "bpmAvg": "bpm (moy)",
+    "mmHgAvg": "mmHg (moy)",
+    "celsiusAvg": "celsius (moy)",
+    "oxygenSaturationAvg": "saturation en oxygène (moy)",
+    "normal": "normal",
+    "warning": "attention",
+    "urgent": "urgent",
+    "riskScore": "Score de risque",
+    "age": "Âge",
+    "lastVitals": "Derniers signes vitaux"
   },
   "residents": {
     "title": "Résidents",
@@ -158,6 +179,30 @@
     "deleteConfirmTitle": "Êtes-vous absolument sûr ?",
     "deleteConfirmDesc": "Cette action ne peut pas être annulée. Cela supprimera définitivement votre compte et supprimera toutes vos données de nos serveurs. Vous serez déconnecté immédiatement."
   },
+  "vitals": {
+    "title": "Signes vitaux",
+    "subtitle": "Surveiller les signes vitaux et la santé des résidents",
+    "totalRecords": "Total des enregistrements",
+    "avgHeartRate": "FC moyenne",
+    "avgTemp": "Temp. moyenne",
+    "avgSpO2": "SpO2 moyen",
+    "recentVitals": "Signes vitaux récents",
+    "recentVitalsDesc": "Enregistrements vitaux les plus récents",
+    "historyAndTrends": "Historique et tendances",
+    "historyAndTrendsDesc": "Signes vitaux sur 7 jours pour le résident sélectionné",
+    "selectResident": "Sélectionner un résident",
+    "selectResidentPrompt": "Veuillez sélectionner un résident pour voir les tendances",
+    "noHistoryData": "Aucune donnée historique disponible pour ce résident",
+    "noData": "Aucune donnée de signes vitaux disponible",
+    "residentName": "Nom du résident",
+    "heartRate": "Fréquence cardiaque",
+    "temperature": "Température",
+    "bloodPressure": "Pression artérielle",
+    "systolic": "Systolique",
+    "diastolic": "Diastolique",
+    "spO2": "SpO2",
+    "recordedAt": "Enregistré le"
+  },
   "common": {
     "loading": "Chargement...",
     "error": "Erreur",
@@ -166,6 +211,7 @@
     "yes": "Oui",
     "no": "Non",
     "true": "VRAI",
-    "false": "FAUX"
+    "false": "FAUX",
+    "refresh": "Actualiser"
   }
 }
