@@ -6,21 +6,29 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import Dashboard from "./pages/Dashboard";
-import FallCheck from "./pages/FallCheck";
-import Falls from "./pages/Falls";
-import Alerts from "./pages/Alerts";
-import Residents from "./pages/Residents";
-import Tasks from "./pages/Tasks";
-import Vitals from "./pages/Vitals";
-import Incidents from "./pages/Incidents";
-
-import Settings from "./pages/Settings";
-import Reports from "./pages/Reports";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import NotFound from "./pages/NotFound";
+import { lazy, Suspense } from "react";
 import DashboardLayout from "./components/DashboardLayout";
+
+// Lazy load page components for better performance
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const FallCheck = lazy(() => import("./pages/FallCheck"));
+const Falls = lazy(() => import("./pages/Falls"));
+const Alerts = lazy(() => import("./pages/Alerts"));
+const Residents = lazy(() => import("./pages/Residents"));
+const Tasks = lazy(() => import("./pages/Tasks"));
+const Vitals = lazy(() => import("./pages/Vitals"));
+const Incidents = lazy(() => import("./pages/Incidents"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Reports = lazy(() => import("./pages/Reports"));
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+  </div>
+);
 
 const queryClient = new QueryClient();
 
@@ -33,78 +41,80 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <AuthProvider>
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <DashboardLayout>
-                      <Dashboard />
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/residents" element={
-                  <ProtectedRoute>
-                    <DashboardLayout>
-                      <Residents />
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/alerts" element={
-                  <ProtectedRoute>
-                    <DashboardLayout>
-                      <Alerts />
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/vitals" element={
-                  <ProtectedRoute>
-                    <DashboardLayout>
-                      <Vitals />
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/tasks" element={
-                  <ProtectedRoute>
-                    <DashboardLayout>
-                      <Tasks />
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/incidents" element={
-                  <ProtectedRoute>
-                    <DashboardLayout>
-                      <Incidents />
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/settings" element={
-                  <ProtectedRoute>
-                    <DashboardLayout>
-                      <Settings />
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/reports" element={
-                  <ProtectedRoute>
-                    <DashboardLayout>
-                      <Reports />
-                    </DashboardLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/fall-check" element={
-                  <ProtectedRoute>
-                    <FallCheck />
-                  </ProtectedRoute>
-                } />
-                <Route path="/falls" element={
-                  <ProtectedRoute>
-                    <Falls />
-                  </ProtectedRoute>
-                } />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <Suspense fallback={<PageLoader />}>
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <Dashboard />
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/residents" element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <Residents />
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/alerts" element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <Alerts />
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/vitals" element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <Vitals />
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/tasks" element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <Tasks />
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/incidents" element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <Incidents />
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/settings" element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <Settings />
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/reports" element={
+                    <ProtectedRoute>
+                      <DashboardLayout>
+                        <Reports />
+                      </DashboardLayout>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/fall-check" element={
+                    <ProtectedRoute>
+                      <FallCheck />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/falls" element={
+                    <ProtectedRoute>
+                      <Falls />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
             </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>

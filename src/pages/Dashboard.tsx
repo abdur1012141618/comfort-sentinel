@@ -214,13 +214,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.title')}</h1>
-          <p className="text-muted-foreground">
-            {t('dashboard.subtitle')}
-          </p>
-        </div>
+      <div className="mb-8 flex items-center justify-end">
         <Button onClick={handleSeedDemo} disabled={seeding} variant="outline">
           <Database className="h-4 w-4 mr-2" />
           {seeding ? t('dashboard.adding') : t('dashboard.addTestData')}
@@ -231,13 +225,15 @@ export default function Dashboard() {
       {openAlerts.count > 0 && (
         <Card className="mb-6 border-destructive/50 bg-destructive/5">
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <Bell className="h-5 w-5 text-destructive" />
-              <CardTitle className="text-destructive">{t('dashboard.emergencyAlerts')}</CardTitle>
+            <div className="flex flex-col items-center text-center gap-2">
+              <div className="flex items-center gap-2">
+                <Bell className="h-5 w-5 text-destructive" />
+                <CardTitle className="text-destructive">{t('dashboard.emergencyAlerts')}</CardTitle>
+              </div>
+              <CardDescription>
+                {openAlerts.count} {t('dashboard.activeAlertsRequiringAttention')}
+              </CardDescription>
             </div>
-            <CardDescription>
-              {openAlerts.count} {t('dashboard.activeAlertsRequiringAttention')}
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild variant="destructive" className="w-full sm:w-auto">
