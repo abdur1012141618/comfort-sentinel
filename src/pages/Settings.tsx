@@ -458,6 +458,7 @@ export default function Settings() {
                       <TableCell>
                         <Badge variant={
                           orgUser.role === 'admin' ? 'default' : 
+                          orgUser.role === 'caregiver' ? 'default' :
                           orgUser.role === 'nurse' ? 'secondary' : 
                           'outline'
                         }>
@@ -474,10 +475,11 @@ export default function Settings() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="admin">{t('settings.roles.admin')}</SelectItem>
-                            <SelectItem value="nurse">{t('settings.roles.nurse')}</SelectItem>
-                            <SelectItem value="staff">{t('settings.roles.staff')}</SelectItem>
-                            <SelectItem value="viewer">{t('settings.roles.viewer')}</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="caregiver">Caregiver</SelectItem>
+                            <SelectItem value="nurse">Nurse</SelectItem>
+                            <SelectItem value="staff">Staff</SelectItem>
+                            <SelectItem value="viewer">Viewer</SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>
