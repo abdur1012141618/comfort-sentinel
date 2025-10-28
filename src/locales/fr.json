@@ -195,7 +195,13 @@
     "noName": "Pas de nom",
     "you": "Vous",
     "roleUpdated": "Rôle mis à jour avec succès",
-    "roleUpdateFailed": "Échec de la mise à jour du rôle"
+    "roleUpdateFailed": "Échec de la mise à jour du rôle",
+    "roles": {
+      "admin": "Administrateur",
+      "nurse": "Infirmier(ère)",
+      "staff": "Personnel",
+      "viewer": "Observateur"
+    }
   },
   "vitals": {
     "title": "Signes vitaux",
