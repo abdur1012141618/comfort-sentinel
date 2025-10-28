@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Home, Users, AlertTriangle, FileText, Settings, LogIn } from "lucide-react";
+import { Home, Users, AlertTriangle, Settings, LogIn, ClipboardList, AlertCircle, FileBarChart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect } from "react";
 
@@ -23,10 +23,12 @@ const useLoginBypass = () => {
 // --- END: Temporary Login Bypass for Testing ---
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: Home },
+  { name: "Dashboard", href: "/dashboard", icon: Home },
   { name: "Residents", href: "/residents", icon: Users },
   { name: "Alerts", href: "/alerts", icon: AlertTriangle },
-  { name: "Logs", href: "/logs", icon: FileText },
+  { name: "Tasks", href: "/tasks", icon: ClipboardList },
+  { name: "Incidents", href: "/incidents", icon: AlertCircle },
+  { name: "Reports", href: "/reports", icon: FileBarChart },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
