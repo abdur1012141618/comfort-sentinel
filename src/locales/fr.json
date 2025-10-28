@@ -177,7 +177,16 @@
     "deleteAccount": "Supprimer le compte",
     "processing": "Traitement...",
     "deleteConfirmTitle": "Êtes-vous absolument sûr ?",
-    "deleteConfirmDesc": "Cette action ne peut pas être annulée. Cela supprimera définitivement votre compte et supprimera toutes vos données de nos serveurs. Vous serez déconnecté immédiatement."
+    "deleteConfirmDesc": "Cette action ne peut pas être annulée. Cela supprimera définitivement votre compte et supprimera toutes vos données de nos serveurs. Vous serez déconnecté immédiatement.",
+    "roleManagement": "Gestion des rôles",
+    "roleManagementDesc": "Gérer les rôles des utilisateurs de votre organisation",
+    "userName": "Nom d'utilisateur",
+    "role": "Rôle",
+    "actions": "Actions",
+    "noName": "Pas de nom",
+    "you": "Vous",
+    "roleUpdated": "Rôle mis à jour avec succès",
+    "roleUpdateFailed": "Échec de la mise à jour du rôle"
   },
   "vitals": {
     "title": "Signes vitaux",
