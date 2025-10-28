@@ -133,8 +133,8 @@ export default function Settings() {
         if (authError) throw authError;
         
         toast({
-          title: "Email Update",
-          description: "Please check your new email address for a confirmation link."
+          title: t('settings.emailUpdateTitle'),
+          description: t('settings.emailUpdateDesc')
         });
       }
       
@@ -147,8 +147,8 @@ export default function Settings() {
       if (profileError) throw profileError;
       
       toast({
-        title: "Success",
-        description: "Profile updated successfully"
+        title: t('common.success'),
+        description: t('settings.profileUpdated')
       });
       setIsEditMode(false);
       
@@ -162,14 +162,14 @@ export default function Settings() {
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         toast({
-          title: "Validation Error",
+          title: t('settings.validationError'),
           description: error.errors[0].message,
           variant: "destructive"
         });
       } else {
         toast({
-          title: "Error",
-          description: error.message || "Failed to update profile",
+          title: t('common.error'),
+          description: error.message || t('settings.profileUpdateFailed'),
           variant: "destructive"
         });
       }
@@ -188,15 +188,15 @@ export default function Settings() {
       if (error) throw error;
       
       toast({
-        title: "Account Deletion",
-        description: "You have been signed out. Please contact support to permanently delete your account."
+        title: t('settings.accountDeletionTitle'),
+        description: t('settings.accountDeletionDesc')
       });
       
       navigate('/login');
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to process request",
+        title: t('common.error'),
+        description: error.message || t('settings.profileUpdateFailed'),
         variant: "destructive"
       });
     } finally {
@@ -258,9 +258,9 @@ export default function Settings() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Settings</h1>
+        <h1 className="text-3xl font-bold">{t('settings.title')}</h1>
         <Card>
-          <CardContent className="py-8 text-center">Loading...</CardContent>
+          <CardContent className="py-8 text-center">{t('settings.loading')}</CardContent>
         </Card>
       </div>
     );
@@ -269,22 +269,22 @@ export default function Settings() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Settings</h1>
+        <h1 className="text-3xl font-bold">{t('settings.title')}</h1>
         <p className="text-muted-foreground mt-2">
-          Manage your account settings and preferences
+          {t('settings.subtitle')}
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Profile Information</CardTitle>
+          <CardTitle>{t('settings.profileInfo')}</CardTitle>
           <CardDescription>
-            Your account information
+            {t('settings.profileInfoDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('settings.email')}</Label>
             <Input
               id="email"
               type="email"
@@ -295,16 +295,16 @@ export default function Settings() {
             />
             {isEditMode && (
               <p className="text-xs text-muted-foreground">
-                You will receive a confirmation email if you change your address
+                {t('settings.emailChangeNotice')}
               </p>
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="full_name">Full Name</Label>
+            <Label htmlFor="full_name">{t('settings.fullName')}</Label>
             <Input
               id="full_name"
               type="text"
-              value={isEditMode ? formData.full_name : (profile?.full_name || "Not set")}
+              value={isEditMode ? formData.full_name : (profile?.full_name || t('settings.notSet'))}
               onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
               disabled={!isEditMode}
               className={!isEditMode ? "bg-muted" : ""}
@@ -315,26 +315,26 @@ export default function Settings() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Account Information</CardTitle>
+          <CardTitle>{t('settings.accountInfo')}</CardTitle>
           <CardDescription>
-            Your account details
+            {t('settings.accountInfoDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">User ID:</span>
+              <span className="text-sm text-muted-foreground">{t('settings.userId')}:</span>
               <span className="text-sm font-mono">{user?.id}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Created:</span>
+              <span className="text-sm text-muted-foreground">{t('settings.created')}:</span>
               <span className="text-sm">
-                {user?.created_at ? new Date(user.created_at).toLocaleDateString() : "N/A"}
+                {user?.created_at ? new Date(user.created_at).toLocaleDateString() : t('settings.na')}
               </span>
             </div>
             {profile?.org_id && (
               <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Organization ID:</span>
+                <span className="text-sm text-muted-foreground">{t('settings.organizationId')}:</span>
                 <span className="text-sm font-mono">{profile.org_id}</span>
               </div>
             )}
@@ -351,7 +351,7 @@ export default function Settings() {
                   className="flex-1"
                 >
                   <Edit className="mr-2 h-4 w-4" />
-                  Edit Profile
+                  {t('settings.editProfile')}
                 </Button>
               ) : (
                 <>
@@ -362,7 +362,7 @@ export default function Settings() {
                     className="flex-1"
                   >
                     <Save className="mr-2 h-4 w-4" />
-                    {isSaving ? "Saving..." : "Save Changes"}
+                    {isSaving ? t('settings.saving') : t('settings.saveChanges')}
                   </Button>
                   <Button
                     variant="outline"
@@ -376,7 +376,7 @@ export default function Settings() {
                     disabled={isSaving}
                   >
                     <X className="mr-2 h-4 w-4" />
-                    Cancel
+                    {t('settings.cancel')}
                   </Button>
                 </>
               )}
@@ -390,25 +390,23 @@ export default function Settings() {
                   disabled={isDeleting}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
-                  {isDeleting ? "Processing..." : "Delete Account"}
+                  {isDeleting ? t('settings.processing') : t('settings.deleteAccount')}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogTitle>{t('settings.deleteConfirmTitle')}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete your account
-                    and remove all your data from our servers. You will be signed out
-                    immediately.
+                    {t('settings.deleteConfirmDesc')}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t('settings.cancel')}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDeleteAccount}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    Delete Account
+                    {t('settings.deleteAccount')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
