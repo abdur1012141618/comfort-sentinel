@@ -14,7 +14,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigation = [
     { name: t('navigation.dashboard'), href: "/dashboard", icon: Home },
     { name: t('navigation.residents'), href: "/residents", icon: Users },
-    { name: t('navigation.vitals'), href: "/vitals", icon: Activity },
     { name: t('navigation.alerts'), href: "/alerts", icon: AlertTriangle },
     { name: t('navigation.tasks'), href: "/tasks", icon: ClipboardList },
     { name: t('navigation.incidents'), href: "/incidents", icon: AlertCircle },
@@ -25,9 +24,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="flex h-screen w-full bg-background">
       {/* Sidebar */}
-      <div className="flex flex-col w-64 bg-card border-r border-border">
-        <div className="flex items-center justify-between h-16 px-6 border-b border-border">
-          <span className="text-xl font-semibold">CareAI</span>
+      <div className="flex flex-col w-64 bg-gradient-to-b from-primary to-primary/90 border-r border-border">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-primary-foreground/10">
+          <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">CareAI</span>
           <LanguageToggle />
         </div>
         <nav className="flex-grow p-4 space-y-2">
@@ -37,10 +36,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               to={item.href}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                  "flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
                   isActive
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
+                    ? "bg-primary-foreground/10 text-primary-foreground shadow-lg"
+                    : "text-primary-foreground/70 hover:bg-primary-foreground/5 hover:text-primary-foreground"
                 )
               }
             >
