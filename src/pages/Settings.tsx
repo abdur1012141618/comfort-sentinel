@@ -460,7 +460,7 @@ export default function Settings() {
                           orgUser.role === 'nurse' ? 'secondary' : 
                           'outline'
                         }>
-                          {orgUser.role}
+                          {t(`settings.roles.${orgUser.role}`, orgUser.role)}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -473,11 +473,10 @@ export default function Settings() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="caregiver">Caregiver</SelectItem>
-                            <SelectItem value="nurse">Nurse</SelectItem>
-                            <SelectItem value="staff">Staff</SelectItem>
-                            <SelectItem value="viewer">Viewer</SelectItem>
+                            <SelectItem value="admin">{t('settings.roles.admin')}</SelectItem>
+                            <SelectItem value="nurse">{t('settings.roles.nurse')}</SelectItem>
+                            <SelectItem value="staff">{t('settings.roles.staff')}</SelectItem>
+                            <SelectItem value="viewer">{t('settings.roles.viewer')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>

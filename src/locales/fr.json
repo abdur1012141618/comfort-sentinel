@@ -227,6 +227,85 @@
     "spO2": "SpO2",
     "recordedAt": "Enregistré le"
   },
+  "reports": {
+    "title": "Rapports",
+    "description": "Générer et télécharger des rapports CSV",
+    "residentsReport": "Rapport des résidents",
+    "residentsDescription": "Exporter tous les résidents avec leurs derniers scores de risque",
+    "tasksReport": "Rapport des tâches",
+    "tasksDescription": "Exporter toutes les tâches avec le statut et le personnel assigné",
+    "incidentsReport": "Rapport des incidents",
+    "incidentsDescription": "Exporter tous les incidents avec type et gravité",
+    "download": "Télécharger CSV",
+    "exporting": "Export en cours...",
+    "success": "Succès",
+    "error": "Erreur",
+    "exportFailed": "Échec de l'export du rapport",
+    "residentsExported": "Rapport des résidents exporté avec succès",
+    "tasksExported": "Rapport des tâches exporté avec succès",
+    "incidentsExported": "Rapport des incidents exporté avec succès"
+  },
+  "tasks": {
+    "title": "Tâches",
+    "description": "Gérer les tâches de soins et les affectations",
+    "createNew": "Créer une nouvelle tâche",
+    "description_field": "Description",
+    "resident": "Résident",
+    "assignedTo": "Assigné à",
+    "dueDate": "Date d'échéance",
+    "priority": "Priorité",
+    "status": "Statut",
+    "created": "Tâche créée avec succès",
+    "createdDescription": "La tâche a été ajoutée au système",
+    "noTasks": "Aucune tâche trouvée",
+    "priorities": {
+      "low": "Faible",
+      "medium": "Moyenne",
+      "high": "Élevée",
+      "urgent": "Urgente"
+    },
+    "statuses": {
+      "pending": "En attente",
+      "in_progress": "En cours",
+      "completed": "Terminée",
+      "cancelled": "Annulée"
+    }
+  },
+  "incidents": {
+    "title": "Incidents",
+    "description": "Suivre et gérer les incidents et notes des résidents",
+    "reportNew": "Signaler un incident",
+    "report": "Signaler",
+    "type": "Type",
+    "resident": "Résident",
+    "reportedBy": "Signalé par",
+    "details": "Détails",
+    "severity": "Gravité",
+    "status": "Statut",
+    "date": "Date",
+    "open": "Ouvert",
+    "resolved": "Résolu",
+    "created": "Incident signalé avec succès",
+    "createdDescription": "L'incident a été ajouté au système",
+    "noIncidents": "Aucun incident trouvé",
+    "types": {
+      "fall": "Chute",
+      "behavioral": "Comportemental",
+      "medical": "Médical",
+      "note": "Note"
+    },
+    "severities": {
+      "minor": "Mineur",
+      "moderate": "Modéré",
+      "severe": "Sévère"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Tout marquer comme lu",
+    "noNotifications": "Aucune notification",
+    "unread": "Non lu"
+  },
   "common": {
     "loading": "Chargement...",
     "error": "Erreur",
@@ -236,6 +315,7 @@
     "no": "Non",
     "true": "VRAI",
     "false": "FAUX",
-    "refresh": "Actualiser"
+    "refresh": "Actualiser",
+    "saving": "Enregistrement..."
   }
 }
