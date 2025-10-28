@@ -652,6 +652,7 @@ export type Database = {
         }[]
       }
       get_user_org_id: { Args: never; Returns: string }
+      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
       resolve_alert: {
         Args: { alert_id_to_resolve: string }
