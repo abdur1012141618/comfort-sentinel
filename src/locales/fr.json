@@ -9,7 +9,8 @@
     "tasks": "Tâches",
     "incidents": "Incidents",
     "reports": "Rapports",
-    "settings": "Paramètres"
+    "settings": "Paramètres",
+    "staffing": "Prévision du Personnel"
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -317,5 +318,24 @@
     "false": "FAUX",
     "refresh": "Actualiser",
     "saving": "Enregistrement..."
+  },
+  "staffing": {
+    "title": "Tableau de Bord de Prévision du Personnel",
+    "staffNeeded": "Personnel Prévu Nécessaire pour le Quart Actuel",
+    "currentShiftInfo": "Le quart actuel est : {{shift}}.",
+    "predictionTime": "Dernière Prévision : {{time}}",
+    "noPrediction": "Aucune prévision disponible. Veuillez exécuter le modèle de prévision.",
+    "runPrediction": "Lancer la Prévision du Personnel Maintenant",
+    "fetchError": "Impossible de récupérer la prévision du personnel.",
+    "triggerError": "Erreur lors du déclenchement de la prévision : ",
+    "inputFeatures": "Paramètres d'Entrée de la Prévision",
+    "totalResidents": "Total des Résidents",
+    "highRiskResidents": "Résidents à Haut Risque (Risque > 75)",
+    "openAlerts": "Alertes Actuellement Ouvertes",
+    "incidentCount": "Incidents Enregistrés (Historique)",
+    "runToSeeFeatures": "Exécutez la prévision pour voir les données d'entrée.",
+    "optimizationTips": "Aperçus d'Optimisation",
+    "tip1": "Le modèle suggère un niveau de personnel qui minimise le risque prédit d'incidents basé sur l'acuité actuelle des résidents.",
+    "tip2": "Examinez le nombre de 'Résidents à Haut Risque' pour comprendre le principal facteur de la recommandation de personnel."
   }
 }

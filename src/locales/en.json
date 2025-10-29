@@ -9,7 +9,8 @@
     "fallChecks": "Fall Checks",
     "alerts": "Alerts",
     "reports": "Reports",
-    "settings": "Settings"
+    "settings": "Settings",
+    "staffing": "Staffing Prediction"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -308,5 +309,24 @@
     "markAllRead": "Mark all read",
     "noNotifications": "No notifications",
     "unread": "Unread"
+  },
+  "staffing": {
+    "title": "Predictive Staffing Dashboard",
+    "staffNeeded": "Predicted Staff Needed for Current Shift",
+    "currentShiftInfo": "The current shift is: {{shift}}.",
+    "predictionTime": "Last Prediction: {{time}}",
+    "noPrediction": "No prediction available. Please run the prediction model.",
+    "runPrediction": "Run Staffing Prediction Now",
+    "fetchError": "Could not fetch staffing prediction.",
+    "triggerError": "Error triggering prediction: ",
+    "inputFeatures": "Prediction Input Features",
+    "totalResidents": "Total Residents",
+    "highRiskResidents": "High-Risk Residents (Risk > 75)",
+    "openAlerts": "Currently Open Alerts",
+    "incidentCount": "Incidents Recorded (Historical)",
+    "runToSeeFeatures": "Run the prediction to see the input data.",
+    "optimizationTips": "Optimization Insights",
+    "tip1": "The model suggests a staffing level that minimizes the predicted risk of incidents based on current resident acuity.",
+    "tip2": "Review the 'High-Risk Residents' count to understand the primary driver of the staffing recommendation."
   }
 }

@@ -24,7 +24,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const navigation = [
     { name: t('navigation.dashboard'), href: "/dashboard", icon: Home },
     { name: t('navigation.residents'), href: "/residents", icon: Users },
-    { name: t('navigation.alerts'), href: "/alerts", icon: AlertTriangle },
+    { name: t('navigation.staffing'), href: "/staffing", icon: Heart },iangle },
     { name: t('navigation.tasks'), href: "/tasks", icon: ClipboardList },
     { name: t('navigation.incidents'), href: "/incidents", icon: AlertCircle },
     { name: t('navigation.reports'), href: "/reports", icon: FileBarChart },

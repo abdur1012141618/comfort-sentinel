@@ -11,12 +11,12 @@ import DashboardLayout from "./components/DashboardLayout";
 
 // Lazy load page components for better performance
 const Dashboard = lazy(() => import("./pages/Dashboard"));
-const FallCheck = lazy(() => import("./pages/FallCheck"));
-const Falls = lazy(() => import("./pages/Falls"));
+
+
 const Alerts = lazy(() => import("./pages/Alerts"));
 const Residents = lazy(() => import("./pages/Residents"));
 const Tasks = lazy(() => import("./pages/Tasks"));
-const Vitals = lazy(() => import("./pages/Vitals"));
+const Staffing = lazy(() => import("./pages/Staffing"));
 const Incidents = lazy(() => import("./pages/Incidents"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Reports = lazy(() => import("./pages/Reports"));
@@ -67,10 +67,10 @@ const App = () => {
                       </DashboardLayout>
                     </ProtectedRoute>
                   } />
-                  <Route path="/vitals" element={
+                  <Route path="/staffing" element={
                     <ProtectedRoute>
                       <DashboardLayout>
-                        <Vitals />
+                        <Staffing />
                       </DashboardLayout>
                     </ProtectedRoute>
                   } />
@@ -102,16 +102,7 @@ const App = () => {
                       </DashboardLayout>
                     </ProtectedRoute>
                   } />
-                  <Route path="/fall-check" element={
-                    <ProtectedRoute>
-                      <FallCheck />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/falls" element={
-                    <ProtectedRoute>
-                      <Falls />
-                    </ProtectedRoute>
-                  } />
+
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
