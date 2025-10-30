@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../utils/supabaseClient'; // Adjust path as needed
-import { Card, Grid, Typography, CircularProgress, Alert, Button } from '@mui/material'; // Assuming MUI or similar component library
+
+// Import shadcn/ui components
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Loader2, AlertTriangle, Heart } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 // Helper function to determine the current shift for display/query purposes
 const getCurrentShift = () => {
@@ -51,7 +57,8 @@ const StaffingDashboard = () => {
     setError(null);
     try {
         // Call the Supabase RPC function to run the prediction logic
-        const { data, error } = await supabase.rpc('predict_staff_needed', { current_shift: currentShift });
+        // Note: The RPC function name must match the one in your Supabase SQL
+        const { data, error } = await supabase.rpc('predict_staff_needed', { shift_type: currentShift });
 
         if (error) {
             throw error;
@@ -74,96 +81,115 @@ const StaffingDashboard = () => {
   }, []);
 
   return (
-    <div style={{ padding: 20 }}>
-      <Typography variant="h4" gutterBottom>
-        {t('staffing.title')}
-      </Typography>
+    <div className="space-y-6 p-6">
+      <h1 className="text-3xl font-bold tracking-tight">{t('staffing.title')}</h1>
       
-      <Alert severity="info" style={{ marginBottom: 20 }}>
-        {t('staffing.currentShiftInfo', { shift: currentShift })}
+      <Alert variant="default" className="mb-6">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>{t('staffing.currentShift')}</AlertTitle>
+        <AlertDescription>
+          {t('staffing.currentShiftInfo', { shift: currentShift })}
+        </AlertDescription>
       </Alert>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Card style={{ padding: 20, textAlign: 'center' }}>
-            <Typography variant="h6" color="textSecondary" gutterBottom>
-              {t('staffing.staffNeeded')}
-            </Typography>
-            {loading ? (
-              <CircularProgress size={60} style={{ margin: 20 }} />
-            ) : error ? (
-              <Alert severity="error">{error}</Alert>
-            ) : prediction ? (
-              <>
-                <Typography variant="h1" color="primary">
-                  {prediction.predicted_staff_needed}
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  {t('staffing.predictionTime', { time: new Date(prediction.created_at).toLocaleTimeString() })}
-                </Typography>
-              </>
-            ) : (
-              <Typography variant="h5" color="textSecondary">
-                {t('staffing.noPrediction')}
-              </Typography>
-            )}
-            
-            <Button 
-                variant="contained" 
-                color="primary" 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Staffing Prediction Card */}
+        <div>
+          <Card className="text-center">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-500">
+                {t('staffing.staffNeeded')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="flex justify-center items-center h-24">
+                  <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                </div>
+              ) : error ? (
+                <Alert variant="destructive">
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              ) : prediction ? (
+                <>
+                  <p className="text-6xl font-extrabold text-primary">
+                    {prediction.predicted_staff}
+                  </p>
+                  <p className="text-sm text-gray-400 mt-2">
+                    {t('staffing.predictionTime', { time: new Date(prediction.created_at).toLocaleTimeString() })}
+                  </p>
+                </>
+              ) : (
+                <p className="text-xl font-semibold text-gray-400">
+                  {t('staffing.noPrediction')}
+                </p>
+              )}
+              
+              <Button 
                 onClick={triggerPrediction} 
                 disabled={loading}
-                style={{ marginTop: 20 }}
-            >
+                className="mt-4 w-full"
+              >
+                <Heart className="w-4 h-4 mr-2" />
                 {t('staffing.runPrediction')}
-            </Button>
+              </Button>
+            </CardContent>
           </Card>
-        </Grid>
+        </div>
 
-        {/* Displaying Input Features for Transparency */}
-        <Grid item xs={12} md={6}>
-            <Card style={{ padding: 20 }}>
-                <Typography variant="h6" gutterBottom>
-                    {t('staffing.inputFeatures')}
-                </Typography>
-                {prediction && (
-                    <Grid container spacing={1}>
-                        <Grid item xs={6}><Typography variant="body1">{t('staffing.totalResidents')}:</Typography></Grid>
-                        <Grid item xs={6}><Typography variant="body1" align="right"><strong>{prediction.total_residents}</strong></Typography></Grid>
-                        
-                        <Grid item xs={6}><Typography variant="body1">{t('staffing.highRiskResidents')}:</Typography></Grid>
-                        <Grid item xs={6}><Typography variant="body1" align="right"><strong>{prediction.total_high_risk}</strong></Typography></Grid>
-                        
-                        <Grid item xs={6}><Typography variant="body1">{t('staffing.openAlerts')}:</Typography></Grid>
-                        <Grid item xs={6}><Typography variant="body1" align="right"><strong>{prediction.total_alerts}</strong></Typography></Grid>
-                        
-                        <Grid item xs={6}><Typography variant="body1">{t('staffing.incidentCount')}:</Typography></Grid>
-                        <Grid item xs={6}><Typography variant="body1" align="right"><strong>{prediction.incident_count || 0}</strong></Typography></Grid>
-                    </Grid>
-                )}
-                {!prediction && !loading && !error && (
-                    <Typography variant="body2" color="textSecondary">
-                        {t('staffing.runToSeeFeatures')}
-                    </Typography>
-                )}
-            </Card>
-        </Grid>
-      </Grid>
+        {/* Input Features Card */}
+        <div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">{t('staffing.inputFeatures')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {prediction && (
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-gray-600">{t('staffing.totalResidents')}:</p>
+                    <strong className="text-sm">{prediction.total_residents}</strong>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-gray-600">{t('staffing.highRiskResidents')}:</p>
+                    <strong className="text-sm">{prediction.high_risk_residents}</strong>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-gray-600">{t('staffing.openAlerts')}:</p>
+                    <strong className="text-sm">{prediction.open_alerts}</strong>
+                  </div>
+                </div>
+              )}
+              {!prediction && !loading && !error && (
+                <p className="text-sm text-gray-500 italic">
+                  {t('staffing.runToSeeFeatures')}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
       
-      {/* Additional section for historical log or optimization tips */}
-      <Card style={{ padding: 20, marginTop: 20 }}>
-        <Typography variant="h6" gutterBottom>
-            {t('staffing.optimizationTips')}
-        </Typography>
-        <Typography variant="body1">
+      {/* Optimization Tips Section */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">{t('staffing.optimizationTips')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm leading-relaxed">
             {t('staffing.tip1')}
-        </Typography>
-        <Typography variant="body1">
+          </p>
+          <p className="text-sm leading-relaxed">
             {t('staffing.tip2')}
-        </Typography>
+          </p>
+        </CardContent>
       </Card>
     </div>
   );
 };
 
 export default StaffingDashboard;
+
