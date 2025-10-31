@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18nextimport { supabase } from '../utils/supabaseClient'; // Adjust path as needed
+import { useTranslation } from 'react-i18next';
+import { supabase } from '../utils/supabaseClient'; // Adjust path as needed
 
 // Import shadcn/ui components
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
