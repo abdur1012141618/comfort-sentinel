@@ -41,10 +41,8 @@ const Staffing = () => {
         }
     };
 
-    // **গুরুত্বপূর্ণ পরিবর্তন:** পেজ লোডের সময় স্বয়ংক্রিয় কলটি সরিয়ে দেওয়া হয়েছে।
-    // useEffect(() => {
-    //     runPrediction();
-    // }, []);
+    // **গুরুত্বপূর্ণ পরিবর্তন:** error ডিসপ্লে লজিকটি শুধুমাত্র তখনই error দেখাবে যখন error স্টেট সেট হবে।
+    // useEffect ব্লকটি আগের মতোই সরিয়ে দেওয়া হয়েছে।
 
     return (
         <div className="p-6">
@@ -68,7 +66,8 @@ const Staffing = () => {
                         </div>
                     )}
 
-                    {error && (
+                    {/* **পরিবর্তিত অংশ:** error && !loading কন্ডিশন যোগ করা হয়েছে */}
+                    {error && !loading && (
                         <div className="p-4 bg-red-100 text-red-700 rounded-lg mb-4">
                             <p className="font-semibold">{t('Error')}</p>
                             <p className="text-sm">{error}</p>
@@ -80,6 +79,13 @@ const Staffing = () => {
                             <Users className="w-12 h-12 text-blue-600 mx-auto mb-4" />
                             <p className="text-5xl font-extrabold text-blue-600">{prediction.predicted_staff}</p>
                             <p className="text-lg text-gray-600 mt-2">{t('staffing.staffMembersRecommended')}</p>
+                        </div>
+                    )}
+
+                    {/* **নতুন কন্ডিশন:** যদি error থাকে এবং prediction না থাকে, তবে একটি ফলব্যাক মেসেজ দেখাবে */}
+                    {!loading && !prediction && !error && (
+                        <div className="text-center py-8">
+                            <p className="text-gray-500">{t('staffing.noPredictionYet') || 'Click the button to run the first prediction.'}</p>
                         </div>
                     )}
 
