@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../utils/supabaseClient';
+import { supabaseClient } from '../supabaseClient.ts';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Clock, Users, Zap } from 'lucide-react';
 
