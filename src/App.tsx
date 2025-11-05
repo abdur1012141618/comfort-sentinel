@@ -6,7 +6,7 @@ import { Residents } from './pages/Residents';
 import { Settings } from './pages/Settings';
 import { Sidebar } from './components/ui/sidebar.tsx'; 
 // import { Header } from './components/ui/header.tsx'; // <--- ডিলিট করা হয়েছে
-import { UserManagement } from './pages/UserManagement.tsx'; // <--- এই লাইনটি ঠিক করা হয়েছে
+// import { UserManagement } from './pages/UserManagement.tsx'; // <--- এই লাইনটি ডিলিট করা হয়েছে
 import { Alerts } from './pages/api/Alerts.tsx'; 
 
 function App() {
@@ -29,7 +29,7 @@ function App() {
               <Route path="/residents" element={<Residents />} />
               <Route path="/alerts" element={<Alerts />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/users" element={<UserManagement />} />
+              {/* <Route path="/users" element={<UserManagement />} /> <--- এই লাইনটি ডিলিট করা হয়েছে */}
             </Routes>
           </main>
         </div>
