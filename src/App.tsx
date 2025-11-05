@@ -5,8 +5,8 @@ import { Staffing } from './pages/Staffing';
 import { Residents } from './pages/Residents';
 import { Settings } from './pages/Settings';
 import { Sidebar } from './components/ui/sidebar.tsx'; 
-// import { Header } from './components/ui/header.tsx'; // <--- এই লাইনটি ডিলিট করা হয়েছে
-import { UserManagement } from './pages/UserManagement';
+// import { Header } from './components/ui/header.tsx'; // <--- ডিলিট করা হয়েছে
+import { UserManagement } from './pages/UserManagement.tsx'; // <--- এই লাইনটি ঠিক করা হয়েছে
 import { Alerts } from './pages/api/Alerts.tsx'; 
 
 function App() {
@@ -21,7 +21,7 @@ function App() {
       <div className="flex h-screen bg-gray-100">
         <Sidebar isOpen={isSidebarOpen} />
         <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-16'}`}>
-          {/* <Header toggleSidebar={toggleSidebar} /> <--- এই লাইনটি ডিলিট করা হয়েছে */}
+          {/* <Header toggleSidebar={toggleSidebar} /> <--- ডিলিট করা হয়েছে */}
           <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
             <Routes>
               <Route path="/" element={<Dashboard />} />
