@@ -5,9 +5,9 @@ import { Staffing } from './pages/Staffing';
 import { Residents } from './pages/Residents';
 import { Settings } from './pages/Settings';
 import { Sidebar } from './components/ui/sidebar';
-import { Header } from './components/ui/header';
+import { Header } from './components/ui/header.tsx'; // <--- এই লাইনটি ঠিক করা হয়েছে
 import { UserManagement } from './pages/UserManagement';
-import { Alerts } from './pages/api/Alerts.tsx'; // <--- এই লাইনটি চূড়ান্তভাবে ঠিক করা হয়েছে
+import { Alerts } from './pages/api/Alerts.tsx'; 
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
