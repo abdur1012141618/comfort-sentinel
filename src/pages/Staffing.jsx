@@ -1,143 +1,163 @@
 import React, { useState, useEffect } from 'react';
-import { supabaseClient } from '../supabaseClient.ts';
+import { supabaseClient } from '../lib/supabaseClient.ts'; // <--- এই লাইনটি ঠিক করা হয়েছে
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { AlertCircle, CheckCircle, Clock, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Clock, Users, Zap } from 'lucide-react';
 
-const Staffing = () => {
-    const { t } = useTranslation();
-    const [prediction, setPrediction] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+const API_ENDPOINT = import.meta.env.VITE_VERCEL_API_URL || 'https://comfort-sentinel.vercel.app/api/predict-staff';
 
-    const getCurrentShift = () => {
-        const hour = new Date().getHours();
-        if (hour >= 6 && hour < 14) return 'Day';
-        if (hour >= 14 && hour < 22) return 'Evening';
-        return 'Night';
-    };
+export function Staffing( ) {
+  const { t } = useTranslation();
+  const [prediction, setPrediction] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [currentShift, setCurrentShift] = useState('');
 
-    const currentShift = getCurrentShift();
+  // Function to determine the current shift
+  const determineShift = () => {
+    const hour = new Date().getHours();
+    if (hour >= 6 && hour < 14) {
+      return 'Day';
+    } else if (hour >= 14 && hour < 22) {
+      return 'Evening';
+    } else {
+      return 'Night';
+    }
+  };
 
-    const runPrediction = async () => {
-        setLoading(true);
-        setError(null);
-        setPrediction(null);
+  useEffect(() => {
+    setCurrentShift(determineShift());
+  }, []);
 
-        try {
-            const { data, error } = await supabase.rpc('predict_staff_needed', { shift_type: currentShift });
+  const runPrediction = async () => {
+    setLoading(true);
+    setError(null);
+    setPrediction(null);
 
-            if (error) {
-                console.error('Supabase RPC Error:', error);
-                setError(`Error triggering prediction: ${error.message}`);
-                setPrediction(null);
-            } else {
-                setPrediction(data);
-            }
-        } catch (err) {
-            console.error('Prediction Catch Error:', err);
-            setError(`An unexpected error occurred: ${err.message}`);
-        } finally {
-            setLoading(false);
+    try {
+      // 1. Call the Supabase RPC function
+      const { data, error: rpcError } = await supabaseClient.rpc('predict_staff_needed', {
+        p_shift: currentShift,
+      });
+
+      if (rpcError) {
+        throw new Error(`Supabase RPC Error: ${rpcError.message}`);
+      }
+
+      // 2. Check the result from the RPC function
+      if (data && data.length > 0) {
+        const result = data[0];
+        if (result.error_message) {
+          // The RPC function returned an error from the Vercel API
+          setError(result.error_message);
+        } else if (result.prediction_result) {
+          // Successful prediction result
+          setPrediction(result.prediction_result);
+        } else {
+          setError('Prediction result is empty or invalid.');
         }
-    };
+      } else {
+        setError('Supabase RPC returned no data.');
+      }
+    } catch (err) {
+      console.error('Prediction failed:', err);
+      setError(err.message || 'An unknown error occurred during prediction.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // **গুরুত্বপূর্ণ পরিবর্তন:** error ডিসপ্লে লজিকটি শুধুমাত্র তখনই error দেখাবে যখন error স্টেট সেট হবে।
-    // useEffect ব্লকটি আগের মতোই সরিয়ে দেওয়া হয়েছে।
+  const renderPredictionResult = () => {
+    if (loading) {
+      return <p className="text-center text-blue-500">{t('staffing.loading')}</p>;
+    }
+
+    if (error) {
+      return (
+        <div className="text-center text-red-600 p-4 bg-red-50 rounded-lg">
+          <AlertCircle className="w-6 h-6 inline-block mr-2" />
+          <p className="font-semibold">{t('staffing.errorTriggeringPrediction')}</p>
+          <p className="text-sm mt-1">{error}</p>
+        </div>
+      );
+    }
+
+    if (prediction) {
+      return (
+        <div className="text-center">
+          <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-3" />
+          <p className="text-4xl font-bold text-green-700">{prediction.predicted_staff}</p>
+          <p className="text-sm text-gray-500 mt-1">{t('staffing.staffMembersNeeded')}</p>
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg text-left text-sm">
+            <p className="font-semibold">{t('staffing.optimizationInsights')}</p>
+            <p>{prediction.optimization_insights}</p>
+          </div>
+        </div>
+      );
+    }
 
     return (
-        <div className="p-6">
-            <h1 className="text-3xl font-bold mb-6">{t('Predictive Staffing Dashboard')}</h1>
-
-            <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 rounded-lg flex items-center">
-                <Clock className="w-5 h-5 mr-3" />
-                <p className="text-sm">
-                    <span className="font-semibold">{t('staffing.currentShift')}</span>: {t(`shift.${currentShift}`)}
-                </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Predicted Staff Needed */}
-                <div className="md:col-span-2 bg-white p-6 rounded-xl shadow-lg">
-                    <h2 className="text-xl font-semibold mb-4">{t('Predicted Staff Needed for Current Shift')}</h2>
-                    
-                    {loading && (
-                        <div className="text-center py-8">
-                            <p className="text-gray-500">{t('staffing.loadingPrediction')}</p>
-                        </div>
-                    )}
-
-                    {/* **পরিবর্তিত অংশ:** error && !loading কন্ডিশন যোগ করা হয়েছে */}
-                    {error && !loading && (
-                        <div className="p-4 bg-red-100 text-red-700 rounded-lg mb-4">
-                            <p className="font-semibold">{t('Error')}</p>
-                            <p className="text-sm">{error}</p>
-                        </div>
-                    )}
-
-                    {prediction && (
-                        <div className="text-center py-8">
-                            <Users className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-                            <p className="text-5xl font-extrabold text-blue-600">{prediction.predicted_staff}</p>
-                            <p className="text-lg text-gray-600 mt-2">{t('staffing.staffMembersRecommended')}</p>
-                        </div>
-                    )}
-
-                    {/* **নতুন কন্ডিশন:** যদি error থাকে এবং prediction না থাকে, তবে একটি ফলব্যাক মেসেজ দেখাবে */}
-                    {!loading && !prediction && !error && (
-                        <div className="text-center py-8">
-                            <p className="text-gray-500">{t('staffing.noPredictionYet') || 'Click the button to run the first prediction.'}</p>
-                        </div>
-                    )}
-
-                    <button
-                        onClick={runPrediction}
-                        disabled={loading}
-                        className={`w-full py-3 mt-4 rounded-lg font-bold transition duration-200 ${
-                            loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800'
-                        }`}
-                    >
-                        {loading ? t('staffing.runningPrediction') : t('Run Staffing Prediction Now')}
-                    </button>
-                </div>
-
-                {/* Prediction Input Features */}
-                <div className="bg-white p-6 rounded-xl shadow-lg">
-                    <h2 className="text-xl font-semibold mb-4">{t('Prediction Input Features')}</h2>
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div className="flex items-center">
-                                <Users className="w-5 h-5 text-green-600 mr-3" />
-                                <span className="font-medium">{t('Total Residents')}</span>
-                            </div>
-                            <span className="text-lg font-bold">{prediction?.total_residents || 'N/A'}</span>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div className="flex items-center">
-                                <AlertTriangle className="w-5 h-5 text-red-600 mr-3" />
-                                <span className="font-medium">{t('High-Risk Residents')}</span>
-                            </div>
-                            <span className="text-lg font-bold">{prediction?.high_risk_residents || 'N/A'}</span>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div className="flex items-center">
-                                <Zap className="w-5 h-5 text-yellow-600 mr-3" />
-                                <span className="font-medium">{t('Open Alerts')}</span>
-                            </div>
-                            <span className="text-lg font-bold">{prediction?.open_alerts || 'N/A'}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Optimization Insights */}
-            <div className="mt-6 bg-white p-6 rounded-xl shadow-lg">
-                <h2 className="text-xl font-semibold mb-4">{t('Optimization Insights')}</h2>
-                <p className="text-gray-600">
-                    {t('staffing.optimizationInsight')}
-                </p>
-            </div>
-        </div>
+      <p className="text-center text-gray-500">{t('staffing.runPredictionPrompt')}</p>
     );
-};
+  };
 
-export default Staffing;
+  return (
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold">{t('staffing.predictiveStaffingDashboard')}</h1>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Current Shift Card */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t('staffing.currentShift')}</CardTitle>
+            <Clock className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{currentShift}</div>
+            <p className="text-xs text-gray-500">{t('staffing.theCurrentShiftIs', { shift: currentShift })}</p>
+          </CardContent>
+        </Card>
+
+        {/* Predicted Staff Card */}
+        <Card className="col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t('staffing.predictedStaffNeededForCurrentShift')}</CardTitle>
+            <Users className="h-4 w-4 text-gray-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className="w-full min-h-[150px] flex flex-col justify-center">
+                {renderPredictionResult()}
+              </div>
+              <Button
+                onClick={runPrediction}
+                disabled={loading}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {loading ? t('staffing.runningPrediction') : t('staffing.runStaffingPredictionNow')}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Optimization Insights Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">{t('staffing.optimizationInsights')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-gray-600">
+            {t('staffing.optimizationDescription')}
+          </p>
+          {/* Placeholder for more detailed insights */}
+          <div className="mt-4 p-4 border rounded-lg bg-gray-50">
+            <p className="text-sm font-medium">{t('staffing.highRiskResidents')}: 5</p>
+            <p className="text-sm font-medium">{t('staffing.totalResidents')}: 25</p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
