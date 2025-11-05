@@ -4,8 +4,8 @@ import { Dashboard } from './pages/Dashboard';
 import { Staffing } from './pages/Staffing';
 import { Residents } from './pages/Residents';
 import { Settings } from './pages/Settings';
-import { Sidebar } from './components/ui/sidebar';
-import { Header } from './components/ui/header.tsx'; // <--- এই লাইনটি ঠিক করা হয়েছে
+import { Sidebar } from './components/ui/sidebar.tsx'; // <--- এখানে .tsx যোগ করা হলো
+import { Header } from './components/ui/header.tsx'; // <--- এটি ঠিক আছে
 import { UserManagement } from './pages/UserManagement';
 import { Alerts } from './pages/api/Alerts.tsx'; 
 
