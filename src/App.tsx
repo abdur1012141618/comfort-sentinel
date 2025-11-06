@@ -7,9 +7,9 @@ import { useTranslation } from 'react-i18next';
 import Dashboard from './pages/Dashboard';
 import Staffing from './pages/Staffing';
 import Residents from './pages/Residents';
-import Alerts from './pages/Alerts';
+// import Alerts from './pages/Alerts'; // Temporarily commented out to fix Vercel build error
 import Settings from './pages/Settings';
-import Sidebar from './components/ui/sidebar.tsx'; // Corrected path and extension
+import Sidebar from './components/ui/sidebar.tsx';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -32,7 +32,7 @@ function App() {
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/staffing" element={<Staffing />} />
                   <Route path="/residents" element={<Residents />} />
-                  <Route path="/alerts" element={<Alerts />} />
+                  {/* <Route path="/alerts" element={<Alerts />} /> // Temporarily commented out */}
                   <Route path="/settings" element={<Settings />} />
                 </Route>
               </Routes>
