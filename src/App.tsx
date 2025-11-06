@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import Dashboard from './pages/Dashboard';
 import Staffing from './pages/Staffing';
 import Residents from './pages/Residents';
-// import Alerts from './pages/Alerts'; // Temporarily commented out to fix Vercel build error
+// import Alerts from './pages/Alerts'; // <--- এই লাইনটি মুছে ফেলা হয়েছে
 import Settings from './pages/Settings';
 import Sidebar from './components/ui/sidebar.tsx';
 import Login from './pages/Login';
@@ -26,13 +26,11 @@ function App() {
             <div className="container mx-auto px-6 py-8">
               <Routes>
                 <Route path="/login" element={<Login />} />
-                
-                {/* Protected Routes */}
                 <Route element={<ProtectedRoute />}>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/staffing" element={<Staffing />} />
                   <Route path="/residents" element={<Residents />} />
-                  {/* <Route path="/alerts" element={<Alerts />} /> // Temporarily commented out */}
+                  {/* <Route path="/alerts" element={<Alerts />} />  <--- এই লাইনটি মুছে ফেলা হয়েছে */}
                   <Route path="/settings" element={<Settings />} />
                 </Route>
               </Routes>
