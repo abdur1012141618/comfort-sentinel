@@ -4,8 +4,8 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode } ) => ({
-  base: '/', // <--- এই লাইনটি যোগ করা হয়েছে
+export default defineConfig(({ mode }  ) => ({
+  base: '/',
   server: {
     host: "::",
     port: 8080,
@@ -18,6 +18,8 @@ export default defineConfig(({ mode } ) => ({
   },
   build: {
     rollupOptions: {
+      // FIX: Added 'react-hot-toast' to external to resolve Vercel build error
+      external: ['react-hot-toast'], 
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
