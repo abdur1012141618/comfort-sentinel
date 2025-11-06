@@ -14,12 +14,14 @@ export default defineConfig(({ mode }  ) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // FIX: Add alias for react-hot-toast to resolve module specifier error
+      'react-hot-toast': 'react-hot-toast/dist/index.js',
     },
   },
   build: {
     rollupOptions: {
-      // FIX: Added 'react-hot-toast' to external to resolve Vercel build error
-      external: ['react-hot-toast'], 
+      // FIX: Removed 'react-hot-toast' from external as it was causing the module resolution error
+      // external: ['react-hot-toast'], 
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
@@ -31,3 +33,4 @@ export default defineConfig(({ mode }  ) => ({
     chunkSizeWarningLimit: 1000,
   },
 }));
+
