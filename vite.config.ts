@@ -14,13 +14,11 @@ export default defineConfig(({ mode }  ) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      // FIX: Add alias for react-hot-toast to resolve module specifier error
-      'react-hot-toast': 'react-hot-toast/dist/index.js',
     },
   },
   build: {
     rollupOptions: {
-      // FIX: Removed 'react-hot-toast' from external as it was causing the module resolution error
+      // FIX: The 'external' array was causing the build error. It must be removed.
       // external: ['react-hot-toast'], 
       output: {
         manualChunks: {
