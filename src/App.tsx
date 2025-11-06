@@ -1,36 +1,42 @@
-import { useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Dashboard } from './pages/Dashboard';
-import { Staffing } from './pages/Staffing';
-import { Residents } from './pages/Residents';
-import { Settings } from './pages/Settings';
-import { Sidebar } from './components/ui/sidebar.tsx'; 
-// import { Header } from './components/ui/header.tsx'; // <--- ডিলিট করা হয়েছে
-// import { UserManagement } from './pages/UserManagement.tsx'; // <--- এই লাইনটি ডিলিট করা হয়েছে
-import { Alerts } from './pages/api/Alerts.tsx'; 
+import { Toaster } from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
+
+// Component Imports
+import Dashboard from './pages/Dashboard';
+import Staffing from './pages/Staffing';
+import Residents from './pages/Residents';
+import Alerts from './pages/Alerts';
+import Settings from './pages/Settings';
+import Sidebar from './components/ui/sidebar.tsx'; // Corrected path and extension
+import Login from './pages/Login';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+  const { i18n } = useTranslation();
 
   return (
     <Router>
-      <div className="flex h-screen bg-gray-100">
-        <Sidebar isOpen={isSidebarOpen} />
-        <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-16'}`}>
-          {/* <Header toggleSidebar={toggleSidebar} /> <--- ডিলিট করা হয়েছে */}
-          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/staffing" element={<Staffing />} />
-              <Route path="/residents" element={<Residents />} />
-              <Route path="/alerts" element={<Alerts />} />
-              <Route path="/settings" element={<Settings />} />
-              {/* <Route path="/users" element={<UserManagement />} /> <--- এই লাইনটি ডিলিট করা হয়েছে */}
-            </Routes>
+      <Toaster position="top-right" />
+      <div className="flex h-screen bg-gray-50">
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+            <div className="container mx-auto px-6 py-8">
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                
+                {/* Protected Routes */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/staffing" element={<Staffing />} />
+                  <Route path="/residents" element={<Residents />} />
+                  <Route path="/alerts" element={<Alerts />} />
+                  <Route path="/settings" element={<Settings />} />
+                </Route>
+              </Routes>
+            </div>
           </main>
         </div>
       </div>
