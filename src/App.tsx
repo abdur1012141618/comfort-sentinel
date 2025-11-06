@@ -11,7 +11,8 @@ import Residents from './pages/Residents';
 import Settings from './pages/Settings';
 import Sidebar from './components/ui/sidebar.tsx';
 import Login from './pages/Login';
-import ProtectedRoute from './components/ProtectedRoute';
+import { ProtectedRoute } from './components/ProtectedRoute';
+
 
 function App() {
   const { i18n } = useTranslation();
