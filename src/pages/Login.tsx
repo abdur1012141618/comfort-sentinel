@@ -1,111 +1,42 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { z } from 'zod';
+// src/pages/Login.tsx (অস্থায়ী ফিক্স)
+import React from 'react';
+// import { Auth } from '@supabase/auth-ui-react'; // আপনার আসল ইম্পোর্ট
+// import { ThemeSupa } from '@supabase/auth-ui-shared'; // আপনার আসল ইম্পোর্ট
+// import { supabase } from '../supabaseClient'; // আপনার আসল ইম্পোর্ট
 
-const loginSchema = z.object({
-  email: z.string().trim().email({ message: "Invalid email address" }).max(255, { message: "Email must be less than 255 characters" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" })
-});
-
-export default function Login() {
-  const navigate = useNavigate();
-  const { signIn } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    
-    // Validate inputs
-    const validation = loginSchema.safeParse({ email, password });
-    if (!validation.success) {
-      setError(validation.error.issues[0].message);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { error } = await signIn(email.trim(), password);
-      
-      if (error) {
-        setError(error.message);
-      } else {
-        navigate('/dashboard');
-      }
-    } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+export function Login() {
+  // আপনার আসল কোডটি কমেন্ট করা হলো:
+  /*
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>
-          <CardDescription className="text-center">
-            Sign in to your account to continue
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={loading}
-                maxLength={255}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={loading}
-            >
-              {loading ? 'Signing in…' : 'Sign In'}
-            </Button>
-          </form>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-xl shadow-lg">
+        <h2 className="text-2xl font-bold text-center text-gray-900">
+          Sign in to Comfort Sentinel
+        </h2>
+        <Auth
+          supabaseClient={supabase}
+          appearance={{ theme: ThemeSupa }}
+          providers={['google']}
+          redirectTo={window.location.origin}
+          socialLayout="horizontal"
+        />
+      </div>
+    </div>
+  );
+  */
 
-          {error && (
-            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded text-sm text-center text-destructive">
-              {error}
-            </div>
-          )}
-
-          <div className="text-center text-sm text-muted-foreground">
-            Don't have an account?{' '}
-            <Link to="/signup" className="text-primary hover:underline font-medium">
-              Sign up
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+  // অস্থায়ী কোড: নিশ্চিত করার জন্য যে রুটটি কাজ করছে
+  return (
+    <div style={{ 
+      padding: '50px', 
+      backgroundColor: '#FF4500', // OrangeRed
+      color: 'white', 
+      fontSize: '24px',
+      textAlign: 'center',
+      minHeight: '100vh'
+    }}>
+      <h1>LOGIN ROUTE IS WORKING!</h1>
+      <p>If you see this, the routing is fixed. We will restore the original code next.</p>
     </div>
   );
 }
