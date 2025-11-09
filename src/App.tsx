@@ -1,8 +1,6 @@
-// src/App.tsx (পরিবর্তিত কোড)
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext.tsx'; // <--- এই লাইনটি পরিবর্তন করা হয়েছে
 import { Dashboard } from './pages/Dashboard';
 import { Staffing } from './pages/Staffing';
 import { Residents } from './pages/Residents';
