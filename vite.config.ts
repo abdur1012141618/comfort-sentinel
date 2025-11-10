@@ -1,17 +1,15 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import * as path from 'path' // <--- এই লাইনটি যোগ করুন
+import * as path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react( )],
-  // এই resolve অপশনটি যোগ করুন
+  plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'), // <--- এই লাইনটি যোগ করুন
+      '@': path.resolve(__dirname, './src'),
     },
   },
-  // আপনার build অপশনটি যেমন আছে তেমনই থাকবে
   build: {
     rollupOptions: {
       output: {
@@ -22,3 +20,4 @@ export default defineConfig({
     }
   }
 })
+
