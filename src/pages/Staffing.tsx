@@ -1,4 +1,4 @@
-// src/pages/Staffing.tsx এর সম্পূর্ণ কোড
+// src/pages/Staffing.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -145,188 +145,45 @@ import { StaffingNetworkRequestUnknownErrorByServer } from '../components/Staffi
 import { StaffingNetworkRequestNoResponseByServer } from '../components/StaffingNetworkRequestNoResponseByServer';
 import { StaffingNetworkRequestBadResponseByServer } from '../components/StaffingNetworkRequestBadResponseByServer';
 import { StaffingNetworkRequestInvalidResponseByServer } from '../components/StaffingNetworkRequestInvalidResponseByServer';
-import { StaffingNetworkRequestTooManyRedirectsByServer } from '../components/StaffingNetworkRequestTooManyRedirectsByServer';
-import { StaffingNetworkRequestTooManyRequestsByServer } from '../components/StaffingNetworkRequestTooManyRequestsByServer';
-import { StaffingNetworkRequestCancelledByNetwork } from '../components/StaffingNetworkRequestCancelledByNetwork';
-import { StaffingNetworkRequestAbortedByNetwork } from '../components/StaffingNetworkRequestAbortedByNetwork';
-import { StaffingNetworkRequestFailedByNetwork } from '../components/StaffingNetworkRequestFailedByNetwork';
-import { StaffingNetworkRequestTimedOutByNetwork } from '../components/StaffingNetworkRequestTimedOutByNetwork';
-import { StaffingNetworkRequestErrorByNetwork } from '../components/StaffingNetworkRequestErrorByNetwork';
-import { StaffingNetworkRequestUnknownErrorByNetwork } from '../components/StaffingNetworkRequestUnknownErrorByNetwork';
-import { StaffingNetworkRequestNoResponseByNetwork } from '../components/StaffingNetworkRequestNoResponseByNetwork';
-import { StaffingNetworkRequestBadResponseByNetwork } from '../components/StaffingNetworkRequestBadResponseByNetwork';
-import { StaffingNetworkRequestInvalidResponseByNetwork } from '../components/StaffingNetworkRequestInvalidResponseByNetwork';
-import { StaffingNetworkRequestTooManyRedirectsByNetwork } from '../components/StaffingNetworkRequestTooManyRedirectsByNetwork';
-import { StaffingNetworkRequestTooManyRequestsByNetwork } from '../components/StaffingNetworkRequestTooManyRequestsByNetwork';
-import { StaffingNetworkRequestCancelledBySystemNetwork } from '../components/StaffingNetworkRequestCancelledBySystemNetwork';
-import { StaffingNetworkRequestAbortedBySystemNetwork } from '../components/StaffingNetworkRequestAbortedBySystemNetwork';
-import { StaffingNetworkRequestFailedBySystemNetwork } from '../components/StaffingNetworkRequestFailedBySystemNetwork';
-import { StaffingNetworkRequestTimedOutBySystemNetwork } from '../components/StaffingNetworkRequestTimedOutBySystemNetwork';
-import { StaffingNetworkRequestErrorBySystemNetwork } from '../components/StaffingNetworkRequestErrorBySystemNetwork';
-import { StaffingNetworkRequestUnknownErrorBySystemNetwork } from '../components/StaffingNetworkRequestUnknownErrorBySystemNetwork';
-import { StaffingNetworkRequestNoResponseBySystemNetwork } from '../components/StaffingNetworkRequestNoResponseBySystemNetwork';
-import { StaffingNetworkRequestBadResponseBySystemNetwork } from '../components/StaffingNetworkRequestBadResponseBySystemNetwork';
-import { StaffingNetworkRequestInvalidResponseBySystemNetwork } from '../components/StaffingNetworkRequestInvalidResponseBySystemNetwork';
-import { StaffingNetworkRequestTooManyRedirectsBySystemNetwork } from '../components/StaffingNetworkRequestTooManyRedirectsBySystemNetwork';
-import { StaffingNetworkRequestTooManyRequestsBySystemNetwork } from '../components/StaffingNetworkRequestTooManyRequestsBySystemNetwork';
-import { StaffingNetworkRequestCancelledByServerNetwork } from '../components/StaffingNetworkRequestCancelledByServerNetwork';
-import { StaffingNetworkRequestAbortedByServerNetwork } from '../components/StaffingNetworkRequestAbortedByServerNetwork';
-import { StaffingNetworkRequestFailedByServerNetwork } from '../components/StaffingNetworkRequestFailedByServerNetwork';
-import { StaffingNetworkRequestTimedOutByServerNetwork } from '../components/StaffingNetworkRequestTimedOutByServerNetwork';
-import { StaffingNetworkRequestErrorByServerNetwork } from '../components/StaffingNetworkRequestErrorByServerNetwork';
-import { StaffingNetworkRequestUnknownErrorByServerNetwork } from '../components/StaffingNetworkRequestUnknownErrorByServerNetwork';
-import { StaffingNetworkRequestNoResponseByServerNetwork } from '../components/StaffingNetworkRequestNoResponseByServerNetwork';
-import { StaffingNetworkRequestBadResponseByServerNetwork } from '../components/StaffingNetworkRequestBadResponseByServerNetwork';
-import { StaffingNetworkRequestInvalidResponseByServerNetwork } from '../components/StaffingNetworkRequestInvalidResponseByServerNetwork';
-import { StaffingNetworkRequestTooManyRedirectsByServerNetwork } from '../components/StaffingNetworkRequestTooManyRedirectsByServerNetwork';
-import { StaffingNetworkRequestTooManyRequestsByServerNetwork } from '../components/StaffingNetworkRequestTooManyRequestsByServerNetwork';
-import { StaffingNetworkRequestCancelledByNetworkNetwork } from '../components/StaffingNetworkRequestCancelledByNetworkNetwork';
-import { StaffingNetworkRequestAbortedByNetworkNetwork } from '../components/StaffingNetworkRequestAbortedByNetworkNetwork';
-import { StaffingNetworkRequestFailedByNetworkNetwork } from '../components/StaffingNetworkRequestFailedByNetworkNetwork';
-import { StaffingNetworkRequestTimedOutByNetworkNetwork } from '../components/StaffingNetworkRequestTimedOutByNetworkNetwork';
-import { StaffingNetworkRequestErrorByNetworkNetwork } from '../components/StaffingNetworkRequestErrorByNetworkNetwork';
-import { StaffingNetworkRequestUnknownErrorByNetworkNetwork } from '../components/StaffingNetworkRequestUnknownErrorByNetworkNetwork';
-import { StaffingNetworkRequestNoResponseByNetworkNetwork } from '../components/StaffingNetworkRequestNoResponseByNetworkNetwork';
-import { StaffingNetworkRequestBadResponseByNetworkNetwork } from '../components/StaffingNetworkRequestBadResponseByNetworkNetwork';
-import { StaffingNetworkRequestInvalidResponseByNetworkNetwork } from '../components/StaffingNetworkRequestInvalidResponseByNetworkNetwork';
-import { StaffingNetworkRequestTooManyRedirectsByNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRedirectsByNetworkNetwork';
-import { StaffingNetworkRequestTooManyRequestsByNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRequestsByNetworkNetwork';
-import { StaffingNetworkRequestCancelledBySystemNetworkNetwork } from '../components/StaffingNetworkRequestCancelledBySystemNetworkNetwork';
-import { StaffingNetworkRequestAbortedBySystemNetworkNetwork } from '../components/StaffingNetworkRequestAbortedBySystemNetworkNetwork';
-import { StaffingNetworkRequestFailedBySystemNetworkNetwork } from '../components/StaffingNetworkRequestFailedBySystemNetworkNetwork';
-import { StaffingNetworkRequestTimedOutBySystemNetworkNetwork } from '../components/StaffingNetworkRequestTimedOutBySystemNetworkNetwork';
-import { StaffingNetworkRequestErrorBySystemNetworkNetwork } from '../components/StaffingNetworkRequestErrorBySystemNetworkNetwork';
-import { StaffingNetworkRequestUnknownErrorBySystemNetworkNetwork } from '../components/StaffingNetworkRequestUnknownErrorBySystemNetworkNetwork';
-import { StaffingNetworkRequestNoResponseBySystemNetworkNetwork } from '../components/StaffingNetworkRequestNoResponseBySystemNetworkNetwork';
-import { StaffingNetworkRequestBadResponseBySystemNetworkNetwork } from '../components/StaffingNetworkRequestBadResponseBySystemNetworkNetwork';
-import { StaffingNetworkRequestInvalidResponseBySystemNetworkNetwork } from '../components/StaffingNetworkRequestInvalidResponseBySystemNetworkNetwork';
-import { StaffingNetworkRequestTooManyRedirectsBySystemNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRedirectsBySystemNetworkNetwork';
-import { StaffingNetworkRequestTooManyRequestsBySystemNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRequestsBySystemNetworkNetwork';
-import { StaffingNetworkRequestCancelledByServerNetworkNetwork } from '../components/StaffingNetworkRequestCancelledByServerNetworkNetwork';
-import { StaffingNetworkRequestAbortedByServerNetworkNetwork } from '../components/StaffingNetworkRequestAbortedByServerNetworkNetwork';
-import { StaffingNetworkRequestFailedByServerNetworkNetwork } from '../components/StaffingNetworkRequestFailedByServerNetworkNetwork';
-import { StaffingNetworkRequestTimedOutByServerNetworkNetwork } from '../components/StaffingNetworkRequestTimedOutByServerNetworkNetwork';
-import { StaffingNetworkRequestErrorByServerNetworkNetwork } from '../components/StaffingNetworkRequestErrorByServerNetworkNetwork';
-import { StaffingNetworkRequestUnknownErrorByServerNetworkNetwork } from '../components/StaffingNetworkRequestUnknownErrorByServerNetworkNetwork';
-import { StaffingNetworkRequestNoResponseByServerNetworkNetwork } from '../components/StaffingNetworkRequestNoResponseByServerNetworkNetwork';
-import { StaffingNetworkRequestBadResponseByServerNetworkNetwork } from '../components/StaffingNetworkRequestBadResponseByServerNetworkNetwork';
-import { StaffingNetworkRequestInvalidResponseByServerNetworkNetwork } from '../components/StaffingNetworkRequestInvalidResponseByServerNetworkNetwork';
-import { StaffingNetworkRequestTooManyRedirectsByServerNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRedirectsByServerNetworkNetwork';
-import { StaffingNetworkRequestTooManyRequestsByServerNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRequestsByServerNetworkNetwork';
-import { StaffingNetworkRequestCancelledByNetworkNetworkNetwork } from '../components/StaffingNetworkRequestCancelledByNetworkNetworkNetwork';
-import { StaffingNetworkRequestAbortedByNetworkNetworkNetwork } from '../components/StaffingNetworkRequestAbortedByNetworkNetworkNetwork';
-import { StaffingNetworkRequestFailedByNetworkNetworkNetwork } from '../components/StaffingNetworkRequestFailedByNetworkNetworkNetwork';
-import { StaffingNetworkRequestTimedOutByNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTimedOutByNetworkNetworkNetwork';
-import { StaffingNetworkRequestErrorByNetworkNetworkNetwork } from '../components/StaffingNetworkRequestErrorByNetworkNetworkNetwork';
-import { StaffingNetworkRequestUnknownErrorByNetworkNetworkNetwork } from '../components/StaffingNetworkRequestUnknownErrorByNetworkNetworkNetwork';
-import { StaffingNetworkRequestNoResponseByNetworkNetworkNetwork } from '../components/StaffingNetworkRequestNoResponseByNetworkNetworkNetwork';
-import { StaffingNetworkRequestBadResponseByNetworkNetworkNetwork } from '../components/StaffingNetworkRequestBadResponseByNetworkNetworkNetwork';
-import { StaffingNetworkRequestInvalidResponseByNetworkNetworkNetwork } from '../components/StaffingNetworkRequestInvalidResponseByNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRedirectsByNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRedirectsByNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRequestsByNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRequestsByNetworkNetworkNetwork';
-import { StaffingNetworkRequestCancelledBySystemNetworkNetworkNetwork } from '../components/StaffingNetworkRequestCancelledBySystemNetworkNetworkNetwork';
-import { StaffingNetworkRequestAbortedBySystemNetworkNetworkNetwork } from '../components/StaffingNetworkRequestAbortedBySystemNetworkNetworkNetwork';
-import { StaffingNetworkRequestFailedBySystemNetworkNetworkNetwork } from '../components/StaffingNetworkRequestFailedBySystemNetworkNetworkNetwork';
-import { StaffingNetworkRequestTimedOutBySystemNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTimedOutBySystemNetworkNetworkNetwork';
-import { StaffingNetworkRequestErrorBySystemNetworkNetworkNetwork } from '../components/StaffingNetworkRequestErrorBySystemNetworkNetworkNetwork';
-import { StaffingNetworkRequestUnknownErrorBySystemNetworkNetworkNetwork } from '../components/StaffingNetworkRequestUnknownErrorBySystemNetworkNetworkNetwork';
-import { StaffingNetworkRequestNoResponseBySystemNetworkNetworkNetwork } from '../components/StaffingNetworkRequestNoResponseBySystemNetworkNetworkNetwork';
-import { StaffingNetworkRequestBadResponseBySystemNetworkNetworkNetwork } from '../components/StaffingNetworkRequestBadResponseBySystemNetworkNetworkNetwork';
-import { StaffingNetworkRequestInvalidResponseBySystemNetworkNetworkNetwork } from '../components/StaffingNetworkRequestInvalidResponseBySystemNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRedirectsBySystemNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRedirectsBySystemNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRequestsBySystemNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRequestsBySystemNetworkNetworkNetwork';
-import { StaffingNetworkRequestCancelledByServerNetworkNetworkNetwork } from '../components/StaffingNetworkRequestCancelledByServerNetworkNetworkNetwork';
-import { StaffingNetworkRequestAbortedByServerNetworkNetworkNetwork } from '../components/StaffingNetworkRequestAbortedByServerNetworkNetworkNetwork';
-import { StaffingNetworkRequestFailedByServerNetworkNetworkNetwork } from '../components/StaffingNetworkRequestFailedByServerNetworkNetworkNetwork';
-import { StaffingNetworkRequestTimedOutByServerNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTimedOutByServerNetworkNetworkNetwork';
-import { StaffingNetworkRequestErrorByServerNetworkNetworkNetwork } from '../components/StaffingNetworkRequestErrorByServerNetworkNetworkNetwork';
-import { StaffingNetworkRequestUnknownErrorByServerNetworkNetworkNetwork } from '../components/StaffingNetworkRequestUnknownErrorByServerNetworkNetworkNetwork';
-import { StaffingNetworkRequestNoResponseByServerNetworkNetworkNetwork } from '../components/StaffingNetworkRequestNoResponseByServerNetworkNetworkNetwork';
-import { StaffingNetworkRequestBadResponseByServerNetworkNetworkNetwork } from '../components/StaffingNetworkRequestBadResponseByServerNetworkNetworkNetwork';
-import { StaffingNetworkRequestInvalidResponseByServerNetworkNetworkNetwork } from '../components/StaffingNetworkRequestInvalidResponseByServerNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRedirectsByServerNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRedirectsByServerNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRequestsByServerNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRequestsByServerNetworkNetworkNetwork';
-import { StaffingNetworkRequestCancelledByNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestCancelledByNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestAbortedByNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestAbortedByNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestFailedByNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestFailedByNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTimedOutByNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTimedOutByNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestErrorByNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestErrorByNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestUnknownErrorByNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestUnknownErrorByNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestNoResponseByNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestNoResponseByNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestBadResponseByNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestBadResponseByNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestInvalidResponseByNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestInvalidResponseByNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRedirectsByNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRedirectsByNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRequestsByNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRequestsByNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestCancelledBySystemNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestCancelledBySystemNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestAbortedBySystemNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestAbortedBySystemNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestFailedBySystemNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestFailedBySystemNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTimedOutBySystemNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTimedOutBySystemNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestErrorBySystemNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestErrorBySystemNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestUnknownErrorBySystemNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestUnknownErrorBySystemNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestNoResponseBySystemNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestNoResponseBySystemNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestBadResponseBySystemNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestBadResponseBySystemNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestInvalidResponseBySystemNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestInvalidResponseBySystemNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRedirectsBySystemNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRedirectsBySystemNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRequestsBySystemNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRequestsBySystemNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestCancelledByServerNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestCancelledByServerNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestAbortedByServerNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestAbortedByServerNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestFailedByServerNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestFailedByServerNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTimedOutByServerNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTimedOutByServerNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestErrorByServerNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestErrorByServerNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestUnknownErrorByServerNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestUnknownErrorByServerNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestNoResponseByServerNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestNoResponseByServerNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestBadResponseByServerNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestBadResponseByServerNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestInvalidResponseByServerNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestInvalidResponseByServerNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRedirectsByServerNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRedirectsByServerNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRequestsByServerNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRequestsByServerNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestCancelledByNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestCancelledByNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestAbortedByNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestAbortedByNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestFailedByNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestFailedByNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTimedOutByNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTimedOutByNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestErrorByNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestErrorByNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestUnknownErrorByNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestUnknownErrorByNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestNoResponseByNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestNoResponseByNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestBadResponseByNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestBadResponseByNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestInvalidResponseByNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestInvalidResponseByNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRedirectsByNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRedirectsByNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRequestsByNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRequestsByNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestCancelledBySystemNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestCancelledBySystemNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestAbortedBySystemNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestAbortedBySystemNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestFailedBySystemNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestFailedBySystemNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTimedOutBySystemNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTimedOutBySystemNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestErrorBySystemNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestErrorBySystemNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestUnknownErrorBySystemNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestUnknownErrorBySystemNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestNoResponseBySystemNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestNoResponseBySystemNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestBadResponseBySystemNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestBadResponseBySystemNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestInvalidResponseBySystemNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestInvalidResponseBySystemNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRedirectsBySystemNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRedirectsBySystemNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRequestsBySystemNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRequestsBySystemNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestCancelledByServerNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestCancelledByServerNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestAbortedByServerNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestAbortedByServerNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestFailedByServerNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestFailedByServerNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTimedOutByServerNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTimedOutByServerNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestErrorByServerNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestErrorByServerNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestUnknownErrorByServerNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestUnknownErrorByServerNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestNoResponseByServerNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestNoResponseByServerNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestBadResponseByServerNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestBadResponseByServerNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestInvalidResponseByServerNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestInvalidResponseByNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRedirectsByServerNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRedirectsByServerNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRequestsByServerNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRequestsByServerNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestCancelledByNetworkNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestCancelledByNetworkNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestAbortedByNetworkNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestAbortedByNetworkNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestFailedByNetworkNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestFailedByNetworkNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTimedOutByNetworkNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTimedOutByNetworkNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestErrorByNetworkNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestErrorByNetworkNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestUnknownErrorByNetworkNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestUnknownErrorByNetworkNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestNoResponseByNetworkNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestNoResponseByNetworkNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestBadResponseByNetworkNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestBadResponseByNetworkNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestInvalidResponseByNetworkNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestInvalidResponseByNetworkNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRedirectsByNetworkNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRedirectsByNetworkNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTooManyRequestsByNetworkNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTooManyRequestsByNetworkNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestCancelledBySystemNetworkNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestCancelledBySystemNetworkNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestAbortedBySystemNetworkNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestAbortedBySystemNetworkNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestFailedBySystemNetworkNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestFailedBySystemNetworkNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestTimedOutBySystemNetworkNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestTimedOutBySystemNetworkNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestErrorBySystemNetworkNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestErrorBySystemNetworkNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestUnknownErrorBySystemNetworkNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestUnknownErrorBySystemNetworkNetworkNetworkNetworkNetworkNetwork';
-import { StaffingNetworkRequestNoResponseBySystemNetworkNetworkNetworkNetworkNetworkNetwork } from '../components/StaffingNetworkRequestNoResponseBySystemNetworkNetworkNetworkNetworkAfter a long and complex debugging session, the user's React application is still failing to deploy on Netlify. The latest error is a JavaScript syntax error in `src/pages/Staffing.jsx` at line 242, which is a compilation error during the build process. The user has provided the full code for `Staffing.jsx`.
+
+
+const Staffing: React.FC = () => {
+  const location = useLocation();
+  const { user } = useAuth();
+  const [staffingData, setStaffingData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchStaffingData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.from('staffing').select('*');
+      if (error) throw error;
+      setStaffingData(data || []);
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStaffingData();
+  }, [fetchStaffingData]);
+
+  const isStaffing = location.pathname.includes('/staffing');
+
+  return (
+    <div className="p-4">
+      <StaffingHeader />
+      {loading && <StaffingLoading />}
+      {error && <StaffingError message={error} />}
+      {!loading && !error && staffingData.length === 0 && <StaffingEmpty />}
+      {!loading && !error && staffingData.length > 0 && (
+        <StaffingTable data={staffingData} />
+      )}
+    </div>
+  );
+};
+
+export { Staffing };
