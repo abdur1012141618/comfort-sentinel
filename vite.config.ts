@@ -8,9 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': '/src',
-      // এই লাইনটি যোগ করা হলো
-      '@supabase/auth-ui-react': '@supabase/auth-ui-react',
     },
   },
-  // optimizeDeps অংশটি মুছে দেওয়া হলো
+  // Vercel-এর জন্য অতিরিক্ত build বা optimizeDeps কনফিগারেশনের প্রয়োজন নেই
 });
