@@ -1,7 +1,9 @@
 // src/pages/Login.tsx (আপনার আসল কোড)
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
-import { supabase } from '../supabaseClient';
+// src/pages/Login.tsx-এ সঠিক লাইন
+import { supabase } from '../integrations/supabase/supabaseClient';
+
 
 export function Login() {
   return (
