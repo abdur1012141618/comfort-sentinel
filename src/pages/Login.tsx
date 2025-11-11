@@ -4,7 +4,6 @@ import { ThemeSupa } from '@supabase/auth-ui-shared';
 // src/pages/Login.tsx-এ সঠিক লাইন
 import { supabase } from '../integrations/supabase/supabaseClient';
 
-
 export function Login() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
