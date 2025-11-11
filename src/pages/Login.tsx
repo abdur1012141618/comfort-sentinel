@@ -2,7 +2,7 @@
 import React from 'react';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
-import { supabase } from '@/integrations/supabase/supabaseClient.ts'; // <-- এখানে `.ts` যোগ করা হয়েছে
+import { supabase } from '@/integrations/supabase/client.ts'; // <-- এখানে `supabaseClient.ts` এর বদলে `client.ts` করা হয়েছে
 
 const Login: React.FC = () => {
   return (

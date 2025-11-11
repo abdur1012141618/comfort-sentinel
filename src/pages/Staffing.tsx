@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/supabaseClient.ts'; // <-- এখানে `.ts` যোগ করা হয়েছে
+import { supabase } from '@/integrations/supabase/client.ts'; // <-- এখানে `supabaseClient.ts` এর বদলে `client.ts` করা হয়েছে
 import { StaffingTable } from '@/components/StaffingTable';
 // ... (বাকি ইমপোর্ট লাইনগুলো অপরিবর্তিত থাকবে)
 import { StaffingNetworkRequestInvalidResponseByServer } from '@/components/StaffingNetworkRequestInvalidResponseByServer';
