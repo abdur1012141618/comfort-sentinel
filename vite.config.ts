@@ -8,13 +8,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': '/src',
+      // এই লাইনটি যোগ করা হলো
+      '@supabase/auth-ui-react': '@supabase/auth-ui-react',
     },
   },
-  // Supabase Auth UI এর সমস্যা সমাধানের জন্য optimizeDeps যোগ করা হলো
-  optimizeDeps: {
-    include: [
-      '@supabase/auth-ui-react',
-      '@supabase/auth-ui-shared',
-    ],
-  },
+  // optimizeDeps অংশটি মুছে দেওয়া হলো
 });
