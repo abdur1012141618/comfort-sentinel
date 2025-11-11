@@ -4,7 +4,7 @@ import * as path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react( )],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -12,6 +12,8 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
+      // এই লাইনটি যোগ করা হয়েছে
+      external: ['@supabase/auth-ui-react'], 
       output: {
         entryFileNames: `assets/[name].js`,
         chunkFileNames: `assets/[name].js`,
@@ -20,4 +22,3 @@ export default defineConfig({
     }
   }
 })
-
