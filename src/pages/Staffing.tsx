@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../integrations/supabase/supabaseClient';
+import { supabase } from '@/integrations/supabase/supabaseClient'; // <--- এই লাইনটি ফিক্স করা হয়েছে
 import { StaffingTable } from '../components/StaffingTable';
 import { StaffingForm } from '../components/StaffingForm';
 import { StaffingFilter } from '../components/StaffingFilter';
