@@ -12,8 +12,8 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      // এই লাইনটি যোগ করা হয়েছে
-      external: ['@supabase/auth-ui-react'], 
+      // দুটি প্যাকেজই external করা হয়েছে
+      external: ['@supabase/auth-ui-react', '@supabase/auth-ui-shared'], 
       output: {
         entryFileNames: `assets/[name].js`,
         chunkFileNames: `assets/[name].js`,
