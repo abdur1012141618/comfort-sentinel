@@ -1,24 +1,21 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import * as path from 'path'
+// vite.config.ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react( )],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': '/src',
     },
   },
   build: {
     rollupOptions: {
-      // দুটি প্যাকেজই external করা হয়েছে
-      external: ['@supabase/auth-ui-react', '@supabase/auth-ui-shared'], 
-      output: {
-        entryFileNames: `assets/[name].js`,
-        chunkFileNames: `assets/[name].js`,
-        assetFileNames: `assets/[name].[ext]`
-      }
-    }
-  }
-})
+      external: [
+        '@supabase/auth-ui-react',
+        '@supabase/auth-ui-shared',
+      ],
+    },
+  },
+});
