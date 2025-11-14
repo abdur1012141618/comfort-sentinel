@@ -1,14 +1,22 @@
-// vite.config.ts
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react( )],
-  resolve: {
-    alias: {
-      '@': '/src',
-    },
+  // এই অংশটি যোগ করুন
+  optimizeDeps: {
+    include: [
+      '@supabase/supabase-js',
+      '@supabase/auth-ui-react',
+      'react-router-dom'
+    ]
   },
-  // Vercel-এর জন্য অতিরিক্ত build বা optimizeDeps কনফিগারেশনের প্রয়োজন নেই
-});
+  build: {
+    commonjsOptions: {
+      include: [
+        /node_modules/
+      ]
+    }
+  }
+})
