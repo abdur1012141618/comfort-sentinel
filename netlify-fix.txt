@@ -1,0 +1,1 @@
+echo "Forcing a new Netlify build with npm ci" > netlify-fix.txt
