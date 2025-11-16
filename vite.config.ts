@@ -11,8 +11,4 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  // এই অংশটি যোগ করুন
-  optimizeDeps: {
-    include: ['i18next-browser-languagedetector'],
-  },
 })
