@@ -18,7 +18,8 @@ export default defineConfig({
         'date-fns', 
         '@radix-ui/react-slot', 
         'class-variance-authority',
-        '@radix-ui/react-scroll-area' // নতুন যোগ করা হয়েছে
+        '@radix-ui/react-scroll-area',
+        '@radix-ui/react-dropdown-menu' // নতুন যোগ করা হয়েছে
       ],
     },
   },
