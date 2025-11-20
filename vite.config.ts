@@ -13,7 +13,7 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: ['lucide-react', 'date-fns', '@radix-ui/react-slot'],
+      external: ['lucide-react', 'date-fns', '@radix-ui/react-slot', 'class-variance-authority'],
     },
   },
 })
