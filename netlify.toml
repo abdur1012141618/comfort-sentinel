@@ -1,14 +1,6 @@
 [build]
-  command = "npm run build"
+  command = "yarn build"
   publish = "dist"
 
 [build.environment]
-  # Netlify-কে Yarn ব্যবহার করতে বাধ্য করুন
-  NETLIFY_USE_YARN = "true"
-  # Node ভার্সন নিশ্চিত করুন
   NODE_VERSION = "18"
-
-[[plugins]]
-  package = "@netlify/plugin-npm-install"
-  # আমরা এখানে কোনো ইনপুট দিচ্ছি না, শুধু প্লাগইনটি ব্যবহার করছি
-
