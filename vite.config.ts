@@ -13,7 +13,13 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: ['lucide-react', 'date-fns', '@radix-ui/react-slot', 'class-variance-authority'],
+      external: [
+        'lucide-react', 
+        'date-fns', 
+        '@radix-ui/react-slot', 
+        'class-variance-authority',
+        '@radix-ui/react-scroll-area' // নতুন যোগ করা হয়েছে
+      ],
     },
   },
 })
