@@ -9,22 +9,9 @@ export default defineConfig({
     alias: {
       '@components': path.resolve(__dirname, './src/components'),
       '@': path.resolve(__dirname, './src'),
+      // এই লাইনটি যোগ করা হয়েছে: Rollup-কে lucide-react খুঁজে পেতে সাহায্য করবে
+      'lucide-react': path.resolve(__dirname, './node_modules/lucide-react'),
     },
   },
-  build: {
-    // এই অপশনটি Rollup-কে বলে যে এই প্যাকেজগুলিকে CommonJS মডিউল হিসাবে বিবেচনা করতে হবে
-    commonjsOptions: {
-      include: [
-        /node_modules/,
-        'lucide-react', 
-        'date-fns', 
-        '@radix-ui/react-slot', 
-        'class-variance-authority',
-        '@radix-ui/react-scroll-area',
-        '@radix-ui/react-dropdown-menu',
-        'clsx',
-        'tailwind-merge'
-      ],
-    },
-  },
+  // build সেকশনটি সরিয়ে দেওয়া হয়েছে
 })
