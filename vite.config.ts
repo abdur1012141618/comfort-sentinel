@@ -11,18 +11,5 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  build: {
-    rollupOptions: {
-      external: [
-        'lucide-react', 
-        'date-fns', 
-        '@radix-ui/react-slot', 
-        'class-variance-authority',
-        '@radix-ui/react-scroll-area',
-        '@radix-ui/react-dropdown-menu',
-        'clsx',
-        'tailwind-merge' // নতুন যোগ করা হয়েছে
-      ],
-    },
-  },
+  // build সেকশনটি সম্পূর্ণভাবে বাদ দেওয়া হয়েছে
 })
