@@ -9,9 +9,15 @@ export default defineConfig({
     alias: {
       '@components': path.resolve(__dirname, './src/components'),
       '@': path.resolve(__dirname, './src'),
-      // এই লাইনটি যোগ করা হয়েছে: Rollup-কে lucide-react খুঁজে পেতে সাহায্য করবে
+      // সমস্ত সমস্যা সৃষ্টিকারী প্যাকেজের জন্য alias যোগ করা হয়েছে
       'lucide-react': path.resolve(__dirname, './node_modules/lucide-react'),
+      'date-fns': path.resolve(__dirname, './node_modules/date-fns'),
+      '@radix-ui/react-slot': path.resolve(__dirname, './node_modules/@radix-ui/react-slot'),
+      'class-variance-authority': path.resolve(__dirname, './node_modules/class-variance-authority'),
+      '@radix-ui/react-scroll-area': path.resolve(__dirname, './node_modules/@radix-ui/react-scroll-area'),
+      '@radix-ui/react-dropdown-menu': path.resolve(__dirname, './node_modules/@radix-ui/react-dropdown-menu'),
+      'clsx': path.resolve(__dirname, './node_modules/clsx'),
+      'tailwind-merge': path.resolve(__dirname, './node_modules/tailwind-merge'),
     },
   },
-  // build সেকশনটি সরিয়ে দেওয়া হয়েছে
 })
