@@ -20,7 +20,8 @@ export default defineConfig({
         'class-variance-authority',
         '@radix-ui/react-scroll-area',
         '@radix-ui/react-dropdown-menu',
-        'clsx' // নতুন যোগ করা হয়েছে
+        'clsx',
+        'tailwind-merge' // নতুন যোগ করা হয়েছে
       ],
     },
   },
