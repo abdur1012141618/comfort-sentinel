@@ -11,5 +11,17 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  // build সেকশনটি সম্পূর্ণভাবে বাদ দেওয়া হয়েছে
+  // এই অপশনটি Vite-কে বলে যে এই CJS প্যাকেজগুলিকে প্রি-বান্ডিল করে নিতে হবে
+  optimizeDeps: {
+    include: [
+      'lucide-react', 
+      'date-fns', 
+      '@radix-ui/react-slot', 
+      'class-variance-authority',
+      '@radix-ui/react-scroll-area',
+      '@radix-ui/react-dropdown-menu',
+      'clsx',
+      'tailwind-merge'
+    ],
+  },
 })
