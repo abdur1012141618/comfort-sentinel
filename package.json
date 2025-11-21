@@ -37,6 +37,6 @@
     "tailwindcss": "^3.4.1",
     "typescript": "^5.2.2",
     "vite": "^5.0.8",
-    "vite-plugin-commonjs": "^0.10.1"  <-- নতুন যোগ করা হয়েছে
+    "vite-plugin-commonjs": "^0.10.1"
   }
 }
