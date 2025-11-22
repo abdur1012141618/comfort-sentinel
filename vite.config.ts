@@ -1,24 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
-import { viteCommonjs } from 'vite-plugin-commonjs'
+import commonjs from 'rollup-plugin-commonjs'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react( ),
-    viteCommonjs({
-      include: [
-        'lucide-react',
-        'date-fns',
-        '@radix-ui/react-slot',
-        'class-variance-authority',
-        '@radix-ui/react-scroll-area',
-        '@radix-ui/react-dropdown-menu',
-        'clsx',
-        'tailwind-merge'
-      ]
-    })
   ],
   resolve: {
     alias: {
@@ -26,4 +14,22 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      plugins: [
+        commonjs({
+          include: [
+            'node_modules/lucide-react/**',
+            'node_modules/date-fns/**',
+            'node_modules/@radix-ui/react-slot/**',
+            'node_modules/class-variance-authority/**',
+            'node_modules/@radix-ui/react-scroll-area/**',
+            'node_modules/@radix-ui/react-dropdown-menu/**',
+            'node_modules/clsx/**',
+            'node_modules/tailwind-merge/**'
+          ]
+        })
+      ]
+    }
+  }
 })
