@@ -7,6 +7,7 @@ import commonjs from 'rollup-plugin-commonjs'
 export default defineConfig({
   plugins: [
     react( ),
+    commonjs() // সাধারণ commonjs প্লাগইন
   ],
   resolve: {
     alias: {
@@ -16,20 +17,16 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      plugins: [
-        commonjs({
-          include: [
-            'node_modules/lucide-react/**',
-            'node_modules/date-fns/**',
-            'node_modules/@radix-ui/react-slot/**',
-            'node_modules/class-variance-authority/**',
-            'node_modules/@radix-ui/react-scroll-area/**',
-            'node_modules/@radix-ui/react-dropdown-menu/**',
-            'node_modules/clsx/**',
-            'node_modules/tailwind-merge/**'
-          ]
-        })
-      ]
+      external: [
+        'lucide-react',
+        'date-fns',
+        '@radix-ui/react-slot',
+        'class-variance-authority',
+        '@radix-ui/react-scroll-area',
+        '@radix-ui/react-dropdown-menu',
+        'clsx',
+        'tailwind-merge'
+      ],
     }
   }
 })
