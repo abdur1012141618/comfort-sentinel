@@ -19,6 +19,18 @@ export default defineConfig({
   },
   build: {
     target: 'es2022', // Top-Level Await সমস্যার সমাধান
-    // **এখানে rollupOptions ব্লকটি আর থাকবে না**
+    rollupOptions: {
+      // এই অংশটি যোগ করুন
+      external: [
+        'lucide-react',
+        'date-fns',
+        '@radix-ui/react-slot',
+        'class-variance-authority',
+        '@radix-ui/react-scroll-area',
+        '@radix-ui/react-dropdown-menu',
+        'clsx',
+        'tailwind-merge'
+      ],
+    }
   }
 })
