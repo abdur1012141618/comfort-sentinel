@@ -1,4 +1,3 @@
-x
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
@@ -19,7 +18,9 @@ export default defineConfig({
     },
   },
   build: {
-    target: 'es2022', // Top-Level Await সমস্যার সমাধান
-    // **এখানে rollupOptions ব্লকটি আর থাকবে না**
-  }
+    target: 'es2022',
+  },
+  optimizeDeps: {
+    include: ['lucide-react', '@radix-ui/react-slot'],
+  },
 })
