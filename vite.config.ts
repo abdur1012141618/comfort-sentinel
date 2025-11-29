@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
-import commonjs from '@rollup/plugin-commonjs' // নিশ্চিত করুন এটি আছে
+import commonjs from '@rollup/plugin-commonjs'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -17,8 +17,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  // এই লাইনটি যোগ করুন
   build: {
     target: 'es2022', // Top-Level Await সমস্যার সমাধান
+    // **এখানে rollupOptions ব্লকটি আর থাকবে না**
   }
 })
