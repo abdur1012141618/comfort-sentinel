@@ -19,8 +19,15 @@ export default defineConfig({
   },
   build: {
     target: 'es2022',
-  },
-  optimizeDeps: {
-    include: ['lucide-react', '@radix-ui/react-slot'],
-  },
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // lucide-react এর জন্য UNRESOLVED_IMPORT warning-টি দমন করুন
+        if (warning.code === 'UNRESOLVED_IMPORT' && warning.message.includes('lucide-react')) {
+          return;
+        }
+        // অন্যান্য warning-এর জন্য ডিফল্ট আচরণ বজায় রাখুন
+        warn(warning);
+      }
+    }
+  }
 })
